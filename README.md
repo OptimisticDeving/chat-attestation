@@ -12,6 +12,9 @@ You also need to get Mod Menu, Cloth Config & Fabric API from Modrinth.
 
 Compile this mod with `./gradlew --no-daemon build` or `.\gradlew.bat --no-daemon build` if you're on Windows.
 
+**NEVER SEND YOUR chat-attestation.key FILE TO ANYONE**. Your public key is printed in logs at startup (search for "
+Encoded public key").
+
 ## Caveats
 
 - You cannot use Extras messaging mode to verify messages sent in vanish. The fallback mode works though.
