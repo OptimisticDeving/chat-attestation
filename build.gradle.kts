@@ -39,6 +39,11 @@ version = "1.0.0-SNAPSHOT"
 repositories {
   maven("https://maven.shedaniel.me/")
   maven("https://maven.terraformersmc.com/releases/")
+  maven("https://code.chipmunk.land/api/packages/kaboomstandardsorganization/maven") {
+    content {
+      includeGroupAndSubgroups("land.chipmunk.code")
+    }
+  }
 }
 
 val expandedFabricVersion = "${libs.versions.fabric.api.get()}+${libs.versions.minecraft.get()}"
@@ -50,9 +55,12 @@ dependencies {
   modImplementation(libs.fabric.loader)
   modImplementation(fabricApi.module("fabric-networking-api-v1", expandedFabricVersion))
   modImplementation(include(libs.adventure.platform.fabric.get())!!)
+  modImplementation(libs.messaginglib)
 
   modApi(libs.clothconfig)
   modApi(libs.modmenu)
+
+  implementation(include(libs.expiringmap.get())!!)
 
   shade(libs.jtoml.configurate)
   shade(libs.bcprov)

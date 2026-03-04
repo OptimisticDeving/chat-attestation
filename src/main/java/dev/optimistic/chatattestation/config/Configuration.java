@@ -15,4 +15,5 @@ public final class Configuration {
       "https://opt.chipmunk.land/key-manifest-v1.json"
   );
   public volatile boolean toggleForSelf = true;
+  public volatile boolean forceFallback = false;
 }

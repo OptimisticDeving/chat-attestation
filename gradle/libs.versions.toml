@@ -7,9 +7,10 @@ modmenu = "17.0.0-beta.1"
 jtoml = "1.5.1"
 bouncycastle = "1.83"
 fabric-api = "0.141.3"
-#commons-compress = "1.28.0"
 zstd-jni = "1.5.7-7"
 adventure-fabric = "6.8.0"
+messaging-lib = "1.1.0-SNAPSHOT"
+expiring-map = "0.5.11"
 
 java = "21"
 
@@ -19,14 +20,15 @@ fabric-loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric-l
 
 clothconfig = { module = "me.shedaniel.cloth:cloth-config-fabric", version.ref = "cloth-config" }
 modmenu = { module = "com.terraformersmc:modmenu", version.ref = "modmenu" }
-
 jtoml-configurate = { module = "io.github.wasabithumb:jtoml-configurate", version.ref = "jtoml" }
 
 bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
-
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 
 adventure-platform-fabric = { module = "net.kyori:adventure-platform-fabric", version.ref = "adventure-fabric" }
+messaginglib = { module = "land.chipmunk.code.kaboom-standards-organization:messaging-lib", version.ref = "messaging-lib" }
+
+expiringmap = { module = "net.jodah:expiringmap", version.ref = "expiring-map" }
 
 [plugins]
 fabric-loom = { id = "net.fabricmc.fabric-loom-remap", version.ref = "loom" }

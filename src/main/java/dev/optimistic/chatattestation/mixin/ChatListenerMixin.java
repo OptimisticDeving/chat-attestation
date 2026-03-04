@@ -3,11 +3,13 @@ package dev.optimistic.chatattestation.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.optimistic.chatattestation.MessagingEntrypointImpl;
+import dev.optimistic.chatattestation.crypto.Payload;
 import dev.optimistic.chatattestation.crypto.SigningManager;
 import dev.optimistic.chatattestation.duck.StyleDuck;
 import dev.optimistic.chatattestation.mixin.accessor.ChatComponentAccessor;
 import dev.optimistic.chatattestation.util.ChatEncoding;
-import dev.optimistic.chatattestation.util.Payload;
+import io.netty.buffer.ByteBuf;
 import net.kyori.adventure.platform.modcommon.MinecraftClientAudiences;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.minecraft.ChatFormatting;
@@ -17,6 +19,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.network.chat.*;
+import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,14 +34,15 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HexFormat;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 
+import static dev.optimistic.chatattestation.crypto.Payload.withAdditionalData;
+import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
 import static dev.optimistic.chatattestation.util.Constants.*;
-import static dev.optimistic.chatattestation.util.Payload.withNonce;
 
 @Mixin(ChatListener.class)
 public abstract class ChatListenerMixin {
@@ -74,33 +78,61 @@ public abstract class ChatListenerMixin {
   }
 
   @Unique
-  private Component injectComponent(String content, Component originalComponent, ChatType.Bound chatType) {
-    final var matcher = SIGNED_MESSAGE_PATTERN.matcher(content);
-    return matcher.matches() ? originalComponent.copy().withStyle(style -> {
+  private Component injectComponent(String content, Component originalComponent, ChatType.Bound chatType, UUID sender) {
+    return originalComponent.copy().withStyle(style -> {
       final var duck = (StyleDuck) (Object) style;
       duck.chatattestation$setGuiMessageConsumer(
         msg -> VERIFIER_EXECUTOR.submit(
           () -> handleCallback(
             msg,
             chatType,
-            matcher
+            SIGNED_MESSAGE_PATTERN.matcher(content),
+            content,
+            sender
           )
         )
       );
       return style;
-    }) : originalComponent;
+    });
   }
 
   @Unique
   private void handleCallback(
     @NotNull GuiMessage message,
     ChatType.Bound chatType,
-    Matcher contents
+    Matcher contents,
+    String originalContent,
+    UUID sender
   ) {
     final String name = chatType.name().getString();
-    final var msg = contents.group(1);
-    final var pyl = ChatEncoding.decode(contents.group(2));
-    if (pyl == null) return;
+    final String msg;
+    final byte[] pyl;
+    final boolean isFallback = contents.matches();
+
+    if (isFallback) {
+      msg = contents.group(1);
+      pyl = ChatEncoding.decode(contents.group(2));
+      if (pyl == null) return;
+    } else {
+      // TODO: Fix vanish handling
+
+      msg = originalContent;
+
+      final ByteBuf payload;
+      payload = MessagingEntrypointImpl.PAYLOAD_MAP.remove(
+        new MessagingEntrypointImpl.StreamCacheKey(
+          new SigningManager.WrappedByteArray(createHash(originalContent.getBytes(StandardCharsets.UTF_8))),
+          sender
+        )
+      );
+
+      if (payload == null) {
+        return;
+      }
+
+      pyl = new byte[payload.readableBytes()];
+      payload.readBytes(pyl);
+    }
 
     final Payload decodedPayload;
 
@@ -110,16 +142,15 @@ public abstract class ChatListenerMixin {
         new DataInputStream(new ByteArrayInputStream(pyl))
       );
     } catch (Exception e) {
-      LOGGER.warn("Failed to decode payload {}", HexFormat.of().formatHex(pyl), e);
       return;
     }
 
-    // TODO: Use same code in signature generation
     final var response =
       SigningManager.INSTANCE.verifyClaim(
-        withNonce(decodedPayload.nonce(), decodedPayload.msg()),
+        withAdditionalData(decodedPayload.msg(), decodedPayload.nonce(), decodedPayload.exp()),
         decodedPayload.signature(),
-        decodedPayload.key()
+        decodedPayload.key(),
+        decodedPayload.exp()
       );
 
     final SigningManager.Response.SignatureValid validSignature;
@@ -141,9 +172,7 @@ public abstract class ChatListenerMixin {
           newTag = REUSED_SIGNATURE;
           return;
         }
-        case SigningManager.Response.SignatureValid valid -> {
-          validSignature = valid;
-        }
+        case SigningManager.Response.SignatureValid valid -> validSignature = valid;
       }
 
       final var key = validSignature.key();
@@ -164,7 +193,7 @@ public abstract class ChatListenerMixin {
 
         newContent = clientAudience.asNative(
           clientAudience.asAdventure(message.content()).replaceText(TextReplacementConfig.builder()
-            .matchLiteral(contents.group())
+            .matchLiteral(isFallback ? contents.group() : originalContent)
             .replacement(decodedPayload.getReplacementMsg())
             .build()
           )
@@ -238,7 +267,7 @@ public abstract class ChatListenerMixin {
   ) {
     original.call(
       instance,
-      injectComponent(component.getString(), component, chatType)
+      injectComponent(component.getString(), component, chatType, Util.NIL_UUID)
     );
   }
 
@@ -263,7 +292,7 @@ public abstract class ChatListenerMixin {
   ) {
     original.call(
       instance,
-      injectComponent(chatMessage.signedContent(), component, chatType),
+      injectComponent(chatMessage.signedContent(), component, chatType, chatMessage.sender()),
       messageSignature,
       guiMessageTag
     );

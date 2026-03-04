@@ -1,10 +1,9 @@
 package dev.optimistic.chatattestation.crypto;
 
-import com.google.common.primitives.Longs;
 import com.google.gson.reflect.TypeToken;
 import dev.optimistic.chatattestation.KeyManifest;
 import dev.optimistic.chatattestation.config.ConfigurationManager;
-import it.unimi.dsi.fastutil.longs.Long2ObjectAVLTreeMap;
+import net.jodah.expiringmap.ExpiringMap;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
@@ -31,12 +30,15 @@ import static dev.optimistic.chatattestation.util.Constants.*;
 
 public final class SigningManager {
   public static final SigningManager INSTANCE = new SigningManager();
+  public static final long PERIOD = 10_000L;
   public final byte[] selfHash;
   private final ExecutorService requestExecutor = Executors.newCachedThreadPool();
   private final StampedLock lock = new StampedLock();
   private final Map<String, KeyManifest> manifests;
   private final Map<WrappedByteArray, LoadedKey> hashToKey = new HashMap<>();
-  private final Long2ObjectAVLTreeMap<Set<WrappedByteArray>> usedSignatureMap = new Long2ObjectAVLTreeMap<>();
+  private final Map<Long, Set<WrappedByteArray>> usedSignatureMap = ExpiringMap.builder()
+    .expiration(PERIOD, TimeUnit.MILLISECONDS)
+    .build();
   private final Path cachePath;
   private final Ed25519PrivateKeyParameters selfKey;
 
@@ -95,14 +97,13 @@ public final class SigningManager {
 
     @SuppressWarnings("resource") final var scheduler = Executors.newSingleThreadScheduledExecutor(DAEMON_THREAD_FACTORY);
     scheduler.scheduleAtFixedRate(this::refetchKeys, 0, 1, TimeUnit.MINUTES);
-    scheduler.scheduleAtFixedRate(this::gcOldPeriods, 0, 15, TimeUnit.SECONDS);
   }
 
   public static void init() {
 
   }
 
-  private static byte[] createHash(byte[] input) {
+  public static byte[] createHash(byte[] input) {
     final MessageDigest messageDigest;
     try {
       messageDigest = MessageDigest.getInstance("SHA3-224");
@@ -114,14 +115,7 @@ public final class SigningManager {
   }
 
   private static long getCurrentPeriod() {
-    return System.currentTimeMillis() / 5_000;
-  }
-
-  private static byte[] withPeriod(byte[] msg) {
-    final byte[] withPeriod = new byte[8 + msg.length];
-    System.arraycopy(Longs.toByteArray(getCurrentPeriod()), 0, withPeriod, 0, 8);
-    System.arraycopy(msg, 0, withPeriod, 8, msg.length);
-    return withPeriod;
+    return 0;
   }
 
   private CompletableFuture<KeyManifest> refetchManifest(String url) {
@@ -194,43 +188,30 @@ public final class SigningManager {
     }
   }
 
-  // Can only be called by one thread at a time.
-  public Response verifyClaim(byte[] msg, byte[] sig, byte[] key) {
-    synchronized (this.usedSignatureMap) {
+  public Response verifyClaim(byte[] msg, byte[] sig, byte[] key, long exp) {
+    if (System.currentTimeMillis() > exp) return Response.ReusedSignature.INSTANCE;
+
+    final long readLock = this.lock.readLock();
+
+    try {
       final var usedSignatures = this.usedSignatureMap.computeIfAbsent(getCurrentPeriod(), k -> new HashSet<>());
       final var wrappedSig = new WrappedByteArray(sig);
       if (usedSignatures.contains(wrappedSig)) return Response.ReusedSignature.INSTANCE;
       final var wrappedKey = new WrappedByteArray(key);
       final var loadedKey = this.hashToKey.get(wrappedKey);
       if (loadedKey == null) return Response.NoSuchKey.INSTANCE;
-      msg = withPeriod(msg);
 
       if (!loadedKey.bc.verify(Ed25519.Algorithm.Ed25519, null, msg, 0, msg.length, sig, 0))
         return Response.InvalidSignature.INSTANCE;
 
       usedSignatures.add(wrappedSig);
       return new Response.SignatureValid(loadedKey);
-    }
-  }
-
-  private void gcOldPeriods() {
-    synchronized (this.usedSignatureMap) {
-      final long currentPeriod = getCurrentPeriod();
-      final var iterator = this.usedSignatureMap.sequencedEntrySet().iterator();
-      int count = 0;
-
-      while (iterator.hasNext()) {
-        if (iterator.next().getKey() >= currentPeriod) continue;
-        count++;
-        iterator.remove();
-      }
-
-      if (LOADER.isDevelopmentEnvironment()) LOGGER.info("Removed {} old entries", count);
+    } finally {
+      this.lock.unlockRead(readLock);
     }
   }
 
   public byte[] createSignature(byte[] msg) {
-    msg = withPeriod(msg);
     final byte[] signature = new byte[64];
     this.selfKey.sign(Ed25519.Algorithm.Ed25519, null, msg, 0, msg.length, signature, 0);
     return signature;

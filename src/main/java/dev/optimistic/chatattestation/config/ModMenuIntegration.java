@@ -12,6 +12,7 @@ public final class ModMenuIntegration implements ModMenuApi {
   private static final Component REMOTE = Component.literal("Remote");
   private static final Component LOCAL = Component.literal("Local");
   private static final Component TOGGLE_FOR_SELF = Component.literal("Sign own messages");
+  private static final Component FORCE_FALLBACK = Component.literal("Force fallback encoding");
   private static final Component TOOLTIP =
     Component.literal(
       "An operator can assign keys to any username they like. Ensure that you trust them. " +
@@ -45,6 +46,16 @@ public final class ModMenuIntegration implements ModMenuApi {
             .startBooleanToggle(TOGGLE_FOR_SELF, ConfigurationManager.INSTANCE.config.toggleForSelf)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.toggleForSelf = newValue;
+              ConfigurationManager.INSTANCE.save();
+            })
+            .build()
+        )
+        .addEntry(
+          builder
+            .entryBuilder()
+            .startBooleanToggle(FORCE_FALLBACK, ConfigurationManager.INSTANCE.config.forceFallback)
+            .setSaveConsumer(newValue -> {
+              ConfigurationManager.INSTANCE.config.forceFallback = newValue;
               ConfigurationManager.INSTANCE.save();
             })
             .build()

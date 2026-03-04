@@ -15,6 +15,9 @@
     ],
     "client": [
       "dev.optimistic.chatattestation.crypto.SigningManager::init"
+    ],
+    "kso.messaging_lib:registration_available": [
+      "dev.optimistic.chatattestation.MessagingEntrypointImpl"
     ]
   },
   "mixins": [
@@ -26,6 +29,7 @@
     "java": ">=${java}",
     "modmenu": ">=${modmenu}",
     "cloth-config": ">=${cloth_config}",
+    "messaging-lib": "~${messaging_lib}",
     "fabric-networking-api-v1": "*"
   }
 }
