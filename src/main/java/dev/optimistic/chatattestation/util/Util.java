@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.regex.Pattern;
 
 public final class Util {
-  private static final Pattern EXTRACTOR = Pattern.compile("^(?:<[^<>]*>|[^:]*:) (.*)$");
+  private static final Pattern EXTRACTOR = Pattern.compile("^<?([^:<>]*)[>:] (.*)$");
   private static final Pattern CHIPMUNK_EXTRACTOR = Pattern.compile("^\\[.*] ([^›]*) › (.*)$");
 
   private Util() {
@@ -22,13 +22,20 @@ public final class Util {
     }
 
     final var matcher = EXTRACTOR.matcher(fullMsg);
-    return matcher.matches() ? matcher.group(1) : null;
+    return matcher.matches() ? matcher.group(2) : null;
   }
 
   public static @Nullable SystemExtraction extractSystemContent(String msg) {
-    final var matcher = CHIPMUNK_EXTRACTOR.matcher(msg);
-    if (!matcher.matches()) return null;
-    return new SystemExtraction(matcher.group(1), matcher.group(2));
+    final var chipmunkMatcher = CHIPMUNK_EXTRACTOR.matcher(msg);
+    if (chipmunkMatcher.matches()) {
+      return new SystemExtraction(chipmunkMatcher.group(1), chipmunkMatcher.group(2));
+    } else {
+      final var regularExtractor = EXTRACTOR.matcher(msg);
+      if (!regularExtractor.matches()) return null;
+      // TODO: Handle spaces in names.
+      final var sender = regularExtractor.group(1).split(" ");
+      return new SystemExtraction(sender[sender.length - 1], regularExtractor.group(2));
+    }
   }
 
   public record SystemExtraction(String sender, String content) {
