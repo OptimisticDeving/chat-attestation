@@ -53,7 +53,6 @@ dependencies {
   mappings(loom.officialMojangMappings())
 
   modImplementation(libs.fabric.loader)
-  modImplementation(fabricApi.module("fabric-networking-api-v1", expandedFabricVersion))
   modImplementation(include(libs.adventure.platform.fabric.get())!!)
   modImplementation(libs.messaginglib)
 

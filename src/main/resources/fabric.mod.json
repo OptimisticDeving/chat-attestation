@@ -29,7 +29,6 @@
     "java": ">=${java}",
     "modmenu": ">=${modmenu}",
     "cloth-config": ">=${cloth_config}",
-    "messaging-lib": "~${messaging_lib}",
-    "fabric-networking-api-v1": "*"
+    "messaging-lib": "~${messaging_lib}"
   }
 }
