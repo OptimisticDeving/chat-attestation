@@ -19,13 +19,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.CHANNEL_NAME;
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.PAYLOAD_MAP;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
 import static dev.optimistic.chatattestation.util.Constants.MESSAGE_LIMIT;
+import static dev.optimistic.chatattestation.util.Constants.SIGN_EXECUTOR;
 import static io.netty.buffer.Unpooled.buffer;
 import static net.minecraft.util.StringUtil.trimChatMessage;
 
@@ -34,8 +33,6 @@ public abstract class ClientPacketListenerMixin {
   @Unique
   private static final Component MSG_TOO_LARGE = Component.literal("Message too large.")
     .withStyle(ChatFormatting.RED);
-  @Unique
-  private static final ExecutorService SIGN_EXECUTOR = Executors.newSingleThreadExecutor();
 
   @WrapMethod(method = "sendChat")
   private void onSendChat(

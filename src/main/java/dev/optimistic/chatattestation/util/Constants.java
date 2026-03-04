@@ -5,7 +5,10 @@ import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongepowered.asm.mixin.Unique;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.regex.Pattern;
 
@@ -21,6 +24,8 @@ public final class Constants {
     return t;
   };
   public static final int MESSAGE_LIMIT = 256;
+  @Unique
+  public static final ExecutorService SIGN_EXECUTOR = Executors.newSingleThreadExecutor();
 
   private Constants() {
 
