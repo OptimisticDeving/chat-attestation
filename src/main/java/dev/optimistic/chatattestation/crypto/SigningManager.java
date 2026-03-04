@@ -66,7 +66,17 @@ public final class SigningManager {
       throw new UncheckedIOException("Failed to initialize cache", e);
     }
 
-    final var keyPath = gameDir.resolve("chat-attestation.key");
+    final var legacyKeyPath = gameDir.resolve(MOD_ID + ".key");
+    final var keyPath = gameDir.resolve(MOD_ID + ".priv.key");
+
+    if (Files.exists(legacyKeyPath)) {
+      try {
+        Files.move(legacyKeyPath, keyPath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to rename legacy key path");
+      }
+    }
+
 
     if (Files.notExists(keyPath)) {
       try {
