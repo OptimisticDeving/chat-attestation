@@ -11,6 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -80,7 +81,8 @@ public abstract class ClientPacketListenerMixin {
         final var key = new SigningManager.WrappedByteArray(contentHash);
 
         buf.skipBytes(16);
-        PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, conn.getLocalGameProfile().id()), buf);
+        PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, conn.getLocalGameProfile().id()), buf.copy());
+        PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, Util.NIL_UUID), buf);
       }
 
       mc.schedule(() -> original.call(trimChatMessage(msg)));

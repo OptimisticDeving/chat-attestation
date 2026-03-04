@@ -46,7 +46,8 @@ import java.util.regex.Matcher;
 import static dev.optimistic.chatattestation.crypto.Payload.withAdditionalData;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
 import static dev.optimistic.chatattestation.util.Constants.*;
-import static dev.optimistic.chatattestation.util.Util.extractContent;
+import static dev.optimistic.chatattestation.util.Util.extractDisguisedContent;
+import static dev.optimistic.chatattestation.util.Util.extractSystemContent;
 
 @Mixin(ChatListener.class)
 public abstract class ChatListenerMixin {
@@ -82,14 +83,24 @@ public abstract class ChatListenerMixin {
   }
 
   @Unique
-  private Component injectComponent(String content, Component originalComponent, ChatType.Bound chatType, UUID sender) {
+  private Component injectComponent(
+    String content,
+    Component originalComponent,
+    ChatType.Bound boundChatType,
+    UUID sender
+  ) {
+    return injectComponent(content, originalComponent, boundChatType.name().getString(), sender);
+  }
+
+  @Unique
+  private Component injectComponent(String content, Component originalComponent, String nick, UUID sender) {
     return originalComponent.copy().withStyle(style -> {
       final var duck = (StyleDuck) (Object) style;
       duck.chatattestation$setGuiMessageConsumer(
         msg -> VERIFIER_EXECUTOR.submit(
           () -> handleCallback(
             msg,
-            chatType,
+            nick,
             SIGNED_MESSAGE_PATTERN.matcher(content),
             content,
             sender
@@ -103,12 +114,11 @@ public abstract class ChatListenerMixin {
   @Unique
   private void handleCallback(
     @NotNull GuiMessage message,
-    ChatType.Bound chatType,
+    String nick,
     Matcher contents,
     String originalContent,
     UUID sender
   ) {
-    final String name = chatType.name().getString();
     final String msg;
     final byte[] pyl;
     final boolean isFallback = contents.matches();
@@ -189,7 +199,7 @@ public abstract class ChatListenerMixin {
           entry ->
             entry.getValue()
               .stream()
-              .anyMatch(claim -> claim.equalsIgnoreCase(name.trim()))
+              .anyMatch(claim -> claim.equalsIgnoreCase(nick.trim()))
         )
         .findAny()
         .orElse(null);
@@ -224,7 +234,7 @@ public abstract class ChatListenerMixin {
         newTag =
           createTag(
             ChatFormatting.GOLD,
-            "The signature was valid and made with a known key," +
+            "The signature was valid and made with a known key, " +
               "but we couldn't verify that the key is authorized to use that name. " +
               "Permitted usernames for this key: " + Arrays.toString(
               key.manifestUrlToClaims()
@@ -271,22 +281,43 @@ public abstract class ChatListenerMixin {
           "addMessage(Lnet/minecraft/network/chat/Component;)V"
     )
   )
-  private void onHandleDisguisedChatMessage(
+  private void onHandleDisguisedChatMessage$addMessage(
     ChatComponent instance,
     Component component,
     Operation<Void> original,
     @Local(argsOnly = true) ChatType.Bound chatType
   ) {
-    final var extractedContent = extractContent(component.getString(), chatType);
+    final var extracted = extractDisguisedContent(component.getString(), chatType);
 
-    if (extractedContent == null) {
+    if (extracted == null) {
       LOGGER.warn("Failed to extract content from chat message");
       return;
     }
 
     original.call(
       instance,
-      injectComponent(extractedContent, component, chatType, Util.NIL_UUID)
+      injectComponent(extracted, component, chatType, Util.NIL_UUID)
+    );
+  }
+
+  @WrapOperation(
+    method = "handleSystemMessage",
+    at = @At(
+      value = "INVOKE",
+      target = "Lnet/minecraft/client/gui/components/ChatComponent;addMessage(Lnet/minecraft/network/chat/Component;)V"
+    )
+  )
+  private void onHandleSystemMessage$addMessage(
+    ChatComponent instance,
+    Component component,
+    Operation<Void> original
+  ) {
+    final var extracted = extractSystemContent(component.getString());
+    if (extracted == null) return;
+
+    original.call(
+      instance,
+      injectComponent(extracted.content(), component, extracted.sender(), Util.NIL_UUID)
     );
   }
 
