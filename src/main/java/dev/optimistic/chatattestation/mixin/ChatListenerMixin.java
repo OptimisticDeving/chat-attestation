@@ -67,6 +67,11 @@ public abstract class ChatListenerMixin {
     "Someone re-used this signature. Someone is attempting a replay attack or poorly forging signatures."
   );
   @Unique
+  private static final GuiMessageTag NEEDS_SIGNATURE = createTag(
+    ChatFormatting.DARK_RED,
+    "A public key is associated with this username, but no signature could be found for this message."
+  );
+  @Unique
   private static final ExecutorService VERIFIER_EXECUTOR = Executors.newSingleThreadExecutor(DAEMON_THREAD_FACTORY);
   @Shadow
   @Final
@@ -112,13 +117,45 @@ public abstract class ChatListenerMixin {
   }
 
   @Unique
+  private void replaceMessage(
+    GuiMessage original,
+    MutableComponent content,
+    GuiMessageTag newTag
+  ) {
+    this.minecraft.schedule(() -> {
+      final var chatComponent = this.minecraft.gui.getChat();
+      final var chatComponentDuck = (ChatComponentDuck) chatComponent;
+      final var chatComponentAccessor = (ChatComponentAccessor) chatComponent;
+      final var allMessages = chatComponentAccessor.getAllMessages();
+
+      final var clone = new GuiMessage(
+        original.addedTime(),
+        content.withStyle(
+          style -> {
+            ((StyleDuck) (Object) style).chatattestation$setGuiMessageConsumer(null);
+            return style;
+          }
+        ),
+        original.signature(),
+        newTag
+      );
+      final int idx = allMessages.indexOf(original);
+      if (idx == -1) return;
+      allMessages.set(allMessages.indexOf(original), clone);
+      chatComponentDuck.chatattestation$refresh();
+    });
+  }
+
+
+  @Unique
   private void handleCallback(
     @NotNull GuiMessage message,
-    String nick,
+    String name,
     Matcher contents,
     String originalContent,
     UUID sender
   ) {
+    final String nick = name.trim();
     final String msg;
     final byte[] pyl;
     final boolean isFallback = contents.matches();
@@ -126,10 +163,7 @@ public abstract class ChatListenerMixin {
     if (isFallback) {
       msg = contents.group(1);
       pyl = ChatEncoding.decode(contents.group(2));
-      if (pyl == null) return;
     } else {
-      // TODO: Fix vanish handling
-
       msg = originalContent;
 
       final ByteBuf payload;
@@ -141,11 +175,17 @@ public abstract class ChatListenerMixin {
       );
 
       if (payload == null) {
-        return;
+        pyl = null;
+      } else {
+        pyl = new byte[payload.readableBytes()];
+        payload.readBytes(pyl);
       }
+    }
 
-      pyl = new byte[payload.readableBytes()];
-      payload.readBytes(pyl);
+    if (pyl == null) {
+      if (!SigningManager.INSTANCE.doesNickRequireSignature(nick)) return;
+      this.replaceMessage(message, message.content().copy(), NEEDS_SIGNATURE);
+      return;
     }
 
     final Payload decodedPayload;
@@ -170,9 +210,6 @@ public abstract class ChatListenerMixin {
     final SigningManager.Response.SignatureValid validSignature;
     GuiMessageTag newTag = null;
     Component newContent = null;
-    final var chatComponent = this.minecraft.gui.getChat();
-    final var chatComponentDuck = (ChatComponentDuck) chatComponent;
-    final var chatComponentAccessor = (ChatComponentAccessor) chatComponent;
 
     try {
       switch (response) {
@@ -199,7 +236,7 @@ public abstract class ChatListenerMixin {
           entry ->
             entry.getValue()
               .stream()
-              .anyMatch(claim -> claim.equalsIgnoreCase(nick.trim()))
+              .anyMatch(claim -> claim.equalsIgnoreCase(nick))
         )
         .findAny()
         .orElse(null);
@@ -245,30 +282,7 @@ public abstract class ChatListenerMixin {
           );
       }
     } finally {
-      final Component newContentFinal = newContent;
-      final GuiMessageTag newTagFinal = newTag;
-
-      this.minecraft.schedule(() -> {
-        final var allMessages = chatComponentAccessor.getAllMessages();
-        final MutableComponent content = (newContentFinal == null ? message.content() : newContentFinal).copy()
-          .withStyle(
-            style -> {
-              ((StyleDuck) (Object) style).chatattestation$setGuiMessageConsumer(null);
-              return style;
-            }
-          );
-
-        final var clone = new GuiMessage(
-          message.addedTime(),
-          content,
-          message.signature(),
-          newTagFinal
-        );
-        final int idx = allMessages.indexOf(message);
-        if (idx == -1) return;
-        allMessages.set(allMessages.indexOf(message), clone);
-        chatComponentDuck.chatattestation$refresh();
-      });
+      this.replaceMessage(message, (newContent == null ? message.content() : newContent).copy(), newTag);
     }
   }
 

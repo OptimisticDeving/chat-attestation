@@ -35,6 +35,7 @@ public final class SigningManager {
   private final ExecutorService requestExecutor = Executors.newCachedThreadPool();
   private final StampedLock lock = new StampedLock();
   private final Map<String, KeyManifest> manifests;
+  private final Set<String> nicks = new HashSet<>();
   private final Map<WrappedByteArray, LoadedKey> hashToKey = new HashMap<>();
   private final Map<Long, Set<WrappedByteArray>> usedSignatureMap = ExpiringMap.builder()
     .expiration(PERIOD, TimeUnit.MILLISECONDS)
@@ -172,6 +173,7 @@ public final class SigningManager {
 
     try {
       this.hashToKey.clear();
+      this.nicks.clear();
 
       for (final var entry : this.manifests.entrySet()) {
         final var manifestUrl = entry.getKey();
@@ -189,8 +191,12 @@ public final class SigningManager {
             )
           );
 
+          final var keyClaims = keyToClaim.getValue();
           final var claims = loadedKey.manifestUrlToClaims.computeIfAbsent(manifestUrl, k -> new HashSet<>());
-          claims.addAll(keyToClaim.getValue());
+          claims.addAll(keyClaims);
+
+          for (final var claim : keyClaims)
+            this.nicks.add(claim.toLowerCase());
         }
       }
     } finally {
@@ -219,6 +225,10 @@ public final class SigningManager {
     } finally {
       this.lock.unlockRead(readLock);
     }
+  }
+
+  public boolean doesNickRequireSignature(String nick) {
+    return this.nicks.contains(nick.toLowerCase());
   }
 
   public byte[] createSignature(byte[] msg) {
