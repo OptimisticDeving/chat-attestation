@@ -305,6 +305,7 @@ public abstract class ChatListenerMixin {
 
     if (extracted == null) {
       LOGGER.warn("Failed to extract content from chat message");
+      original.call(instance, component);
       return;
     }
 
@@ -327,7 +328,10 @@ public abstract class ChatListenerMixin {
     Operation<Void> original
   ) {
     final var extracted = extractSystemContent(component.getString());
-    if (extracted == null) return;
+    if (extracted == null) {
+      original.call(instance, component);
+      return;
+    }
 
     original.call(
       instance,
