@@ -221,7 +221,7 @@ public abstract class ChatListenerMixin {
           createTag(
             ChatFormatting.GOLD,
             "The signature was valid and made with a known key," +
-              "but we couldn't verify that the key is authorized to use that name." +
+              "but we couldn't verify that the key is authorized to use that name. " +
               "Permitted usernames for this key: " + Arrays.toString(
               key.manifestUrlToClaims()
                 .values()
