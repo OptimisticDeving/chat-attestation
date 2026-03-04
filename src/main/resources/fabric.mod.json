@@ -30,5 +30,8 @@
     "modmenu": ">=${modmenu}",
     "cloth-config": ">=${cloth_config}",
     "messaging-lib": "~${messaging_lib}"
+  },
+  "conflicts": {
+    "chatpatches": "*"
   }
 }
