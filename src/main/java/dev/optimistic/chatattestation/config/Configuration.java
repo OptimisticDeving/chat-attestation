@@ -8,12 +8,14 @@ import static dev.optimistic.chatattestation.util.Constants.LOADER;
 
 @ConfigSerializable
 public final class Configuration {
-  public volatile List<String> keyManifestUrls = List.of(
+  private static final String DEFAULT_MANIFEST = "https://opt.chipmunk.land/key-manifest-v1.json";
+
+  public volatile List<String> keyManifestUrls =
     LOADER.isDevelopmentEnvironment() ?
-      "http://localhost:8080/key-manifest-v1.json"
+      List.of("http://localhost:8080/key-manifest-v1.json", DEFAULT_MANIFEST)
       :
-      "https://opt.chipmunk.land/key-manifest-v1.json"
-  );
+      List.of(DEFAULT_MANIFEST);
+
   public volatile boolean toggleForSelf = true;
   public volatile boolean forceFallback = false;
   public int chatMsgTrunc = 2048;
