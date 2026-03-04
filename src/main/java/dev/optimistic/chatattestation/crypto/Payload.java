@@ -1,6 +1,7 @@
 package dev.optimistic.chatattestation.crypto;
 
 import com.google.common.primitives.Longs;
+import dev.optimistic.chatattestation.config.ConfigurationManager;
 import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
 import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
 
@@ -9,9 +10,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static dev.optimistic.chatattestation.crypto.SigningManager.PERIOD;
+import static dev.optimistic.chatattestation.util.Constants.MESSAGE_LIMIT;
 
 public record Payload(byte[] msg, byte[] signature, byte[] key, byte[] nonce, long exp, boolean compressedMsg) {
-  private static final int ORIGINAL_MSG_BUDGET = (256 - 4) - 64 - 16 - 8 - 2 - 1; // 64 for signature size, 16 for key hash, 8 for exp, 2 for nonce, 1 for payload header
+  private static final int ORIGINAL_MSG_BUDGET = (MESSAGE_LIMIT - 4) - 64 - 16 - 8 - 2 - 1; // 64 for signature size, 16 for key hash, 8 for exp, 2 for nonce, 1 for payload header
 
   public static Payload read(byte[] msg, DataInputStream input) throws IOException {
     final int replacementMsgBytes = input.readUnsignedByte();
@@ -64,9 +66,19 @@ public record Payload(byte[] msg, byte[] signature, byte[] key, byte[] nonce, lo
   }
 
   public String getReplacementMsg() throws IOException {
-    return new String(
-      this.compressedMsg ? new ZstdCompressorInputStream(new ByteArrayInputStream(this.msg)).readAllBytes() : this.msg,
-      StandardCharsets.UTF_8
-    );
+    if (!this.compressedMsg) return new String(this.msg, StandardCharsets.UTF_8);
+    final var in = new ZstdCompressorInputStream(new ByteArrayInputStream(this.msg));
+    final var out = new ByteArrayOutputStream();
+
+    final byte[] buf = new byte[8192];
+    int read;
+    while ((read = in.read(buf)) != -1) {
+      if (out.size() >= ConfigurationManager.INSTANCE.config.maxCompressedPayload)
+        return new String(this.msg, StandardCharsets.UTF_8);
+
+      out.write(buf, 0, read);
+    }
+
+    return out.toString(StandardCharsets.UTF_8);
   }
 }

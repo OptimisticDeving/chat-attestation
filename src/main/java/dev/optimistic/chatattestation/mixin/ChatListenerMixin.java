@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.optimistic.chatattestation.MessagingEntrypointImpl;
+import dev.optimistic.chatattestation.config.ConfigurationManager;
 import dev.optimistic.chatattestation.crypto.Payload;
 import dev.optimistic.chatattestation.crypto.SigningManager;
 import dev.optimistic.chatattestation.duck.StyleDuck;
@@ -19,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.network.chat.*;
+import net.minecraft.util.StringUtil;
 import net.minecraft.util.Util;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
@@ -194,7 +196,13 @@ public abstract class ChatListenerMixin {
         newContent = clientAudience.asNative(
           clientAudience.asAdventure(message.content()).replaceText(TextReplacementConfig.builder()
             .matchLiteral(isFallback ? contents.group() : originalContent)
-            .replacement(decodedPayload.getReplacementMsg())
+            .replacement(
+              StringUtil.truncateStringIfNecessary(
+                decodedPayload.getReplacementMsg(),
+                ConfigurationManager.INSTANCE.config.chatMsgTrunc,
+                true
+              )
+            )
             .build()
           )
         );

@@ -20,6 +20,7 @@ public final class Constants {
     t.setDaemon(true);
     return t;
   };
+  public static final int MESSAGE_LIMIT = 256;
 
   private Constants() {
 

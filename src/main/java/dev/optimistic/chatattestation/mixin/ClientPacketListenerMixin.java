@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.CHANNEL_NAME;
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.PAYLOAD_MAP;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
+import static dev.optimistic.chatattestation.util.Constants.MESSAGE_LIMIT;
 import static io.netty.buffer.Unpooled.buffer;
 import static net.minecraft.util.StringUtil.trimChatMessage;
 
@@ -34,8 +35,6 @@ public abstract class ClientPacketListenerMixin {
     .withStyle(ChatFormatting.RED);
   @Unique
   private static final ExecutorService SIGN_EXECUTOR = Executors.newSingleThreadExecutor();
-  @Unique
-  private static final int MESSAGE_LIMIT = 256;
 
   @WrapMethod(method = "sendChat")
   private void onSendChat(
