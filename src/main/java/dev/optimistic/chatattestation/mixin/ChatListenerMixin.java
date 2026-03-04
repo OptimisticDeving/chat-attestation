@@ -45,6 +45,7 @@ import java.util.regex.Matcher;
 import static dev.optimistic.chatattestation.crypto.Payload.withAdditionalData;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
 import static dev.optimistic.chatattestation.util.Constants.*;
+import static dev.optimistic.chatattestation.util.Util.extractContent;
 
 @Mixin(ChatListener.class)
 public abstract class ChatListenerMixin {
@@ -273,9 +274,16 @@ public abstract class ChatListenerMixin {
     Operation<Void> original,
     @Local(argsOnly = true) ChatType.Bound chatType
   ) {
+    final var extractedContent = extractContent(component.getString(), chatType);
+
+    if (extractedContent == null) {
+      LOGGER.warn("Failed to extract content from chat message");
+      return;
+    }
+
     original.call(
       instance,
-      injectComponent(component.getString(), component, chatType, Util.NIL_UUID)
+      injectComponent(extractedContent, component, chatType, Util.NIL_UUID)
     );
   }
 
