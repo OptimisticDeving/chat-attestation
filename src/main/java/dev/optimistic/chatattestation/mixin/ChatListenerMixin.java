@@ -7,6 +7,7 @@ import dev.optimistic.chatattestation.MessagingEntrypointImpl;
 import dev.optimistic.chatattestation.config.ConfigurationManager;
 import dev.optimistic.chatattestation.crypto.Payload;
 import dev.optimistic.chatattestation.crypto.SigningManager;
+import dev.optimistic.chatattestation.duck.ChatComponentDuck;
 import dev.optimistic.chatattestation.duck.StyleDuck;
 import dev.optimistic.chatattestation.mixin.accessor.ChatComponentAccessor;
 import dev.optimistic.chatattestation.util.ChatEncoding;
@@ -159,7 +160,9 @@ public abstract class ChatListenerMixin {
     final SigningManager.Response.SignatureValid validSignature;
     GuiMessageTag newTag = null;
     Component newContent = null;
-    final var chatComponentAccessor = (ChatComponentAccessor) this.minecraft.gui.getChat();
+    final var chatComponent = this.minecraft.gui.getChat();
+    final var chatComponentDuck = (ChatComponentDuck) chatComponent;
+    final var chatComponentAccessor = (ChatComponentAccessor) chatComponent;
 
     try {
       switch (response) {
@@ -254,7 +257,7 @@ public abstract class ChatListenerMixin {
         final int idx = allMessages.indexOf(message);
         if (idx == -1) return;
         allMessages.set(allMessages.indexOf(message), clone);
-        chatComponentAccessor.invokeRefreshTrimmedMessages();
+        chatComponentDuck.chatattestation$refresh();
       });
     }
   }
