@@ -130,7 +130,7 @@ public final class SigningManager {
 
   private CompletableFuture<KeyManifest> refetchManifest(String url) {
     return CompletableFuture.supplyAsync(() -> {
-      try (final var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build()) {
+      try (final var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build()) {
         final var request = client.send(
           HttpRequest.newBuilder(URI.create(url)).GET().build(),
           HttpResponse.BodyHandlers.ofString()
