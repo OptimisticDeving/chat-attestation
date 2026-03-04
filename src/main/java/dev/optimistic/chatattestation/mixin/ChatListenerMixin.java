@@ -166,10 +166,11 @@ public abstract class ChatListenerMixin {
     } else {
       msg = originalContent;
 
+      final var wrapped = new SigningManager.WrappedByteArray(createHash(originalContent.getBytes(StandardCharsets.UTF_8)));
       final ByteBuf payload;
       payload = MessagingEntrypointImpl.PAYLOAD_MAP.remove(
         new MessagingEntrypointImpl.StreamCacheKey(
-          new SigningManager.WrappedByteArray(createHash(originalContent.getBytes(StandardCharsets.UTF_8))),
+          wrapped,
           sender
         )
       );
@@ -179,6 +180,8 @@ public abstract class ChatListenerMixin {
       } else {
         pyl = new byte[payload.readableBytes()];
         payload.readBytes(pyl);
+        if (sender != Util.NIL_UUID)
+          MessagingEntrypointImpl.PAYLOAD_MAP.remove(new MessagingEntrypointImpl.StreamCacheKey(wrapped, Util.NIL_UUID));
       }
     }
 
