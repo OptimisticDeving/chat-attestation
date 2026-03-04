@@ -2,6 +2,7 @@ package dev.optimistic.chatattestation.config;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import dev.optimistic.chatattestation.crypto.SigningManager;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -34,6 +35,7 @@ public final class ModMenuIntegration implements ModMenuApi {
             .setTooltip(TOOLTIP)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.keyManifestUrls = newValue;
+              SigningManager.INSTANCE.refetchKeys();
               ConfigurationManager.INSTANCE.save();
             })
             .build()
