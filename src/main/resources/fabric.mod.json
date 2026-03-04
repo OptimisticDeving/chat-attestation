@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "${name}",
+  "version": "${version}",
+  "name": "${name}",
+  "description": "Botless impersonation protection for Kaboom and perhaps other servers",
+  "authors": [
+    "OptimisticDev"
+  ],
+  "license": "UNLICENSE",
+  "environment": "client",
+  "entrypoints": {
+    "modmenu": [
+      "dev.optimistic.chatattestation.config.ModMenuIntegration"
+    ],
+    "client": [
+      "dev.optimistic.chatattestation.crypto.SigningManager::init"
+    ]
+  },
+  "mixins": [
+    "chat-attestation.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader}",
+    "minecraft": "~${minecraft}",
+    "java": ">=${java}",
+    "modmenu": ">=${modmenu}",
+    "cloth-config": ">=${cloth_config}",
+    "fabric-networking-api-v1": "*"
+  }
+}

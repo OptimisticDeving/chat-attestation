@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "package": "dev.optimistic.chatattestation.mixin",
+  "compatibilityLevel": "JAVA_${java}",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "client": [
+    "ChatComponentMixin",
+    "ChatListenerMixin",
+    "ChatScreenMixin",
+    "ClientPacketListenerMixin",
+    "accessor.ChatComponentAccessor",
+    "accessor.EditBoxAccessor"
+  ],
+  "mixins": [
+    "StyleDuckImplMixin"
+  ]
+}
