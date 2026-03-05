@@ -39,7 +39,10 @@ public abstract class ClientPacketListenerMixin {
     String string,
     Operation<Void> original
   ) {
-    if (!ConfigurationManager.INSTANCE.config.toggleForSelf) {
+    if (
+      !ConfigurationManager.INSTANCE.config.toggleForSelf
+        || (MessagingEntrypointImpl.MESSENGER_INSTANCE == null && ConfigurationManager.INSTANCE.config.disableFallback)
+    ) {
       original.call(trimChatMessage(string));
       return;
     }

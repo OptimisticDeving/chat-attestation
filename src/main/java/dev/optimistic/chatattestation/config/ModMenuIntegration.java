@@ -16,6 +16,7 @@ public final class ModMenuIntegration implements ModMenuApi {
   private static final Component FORCE_FALLBACK = Component.literal("Force fallback encoding");
   private static final Component CHAT_TRUNC = Component.literal("Chat message max characters");
   private static final Component MAX_COMPRESSED_PAYLOAD_LEN = Component.literal("Max compressed payload length");
+  private static final Component DISABLE_FALLBACK = Component.literal("Disable fallback");
   private static final Component TOOLTIP =
     Component.literal(
       "An operator can assign keys to any username they like. Ensure that you trust them. " +
@@ -80,6 +81,16 @@ public final class ModMenuIntegration implements ModMenuApi {
             .startIntField(MAX_COMPRESSED_PAYLOAD_LEN, ConfigurationManager.INSTANCE.config.maxCompressedPayload)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.maxCompressedPayload = newValue;
+              ConfigurationManager.INSTANCE.save();
+            })
+            .build()
+        )
+        .addEntry(
+          builder
+            .entryBuilder()
+            .startBooleanToggle(DISABLE_FALLBACK, ConfigurationManager.INSTANCE.config.disableFallback)
+            .setSaveConsumer(newValue -> {
+              ConfigurationManager.INSTANCE.config.disableFallback = newValue;
               ConfigurationManager.INSTANCE.save();
             })
             .build()

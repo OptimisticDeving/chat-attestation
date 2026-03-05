@@ -37,6 +37,14 @@ public abstract class ConnectionMixin {
     boolean bl,
     Operation<Void> original
   ) {
+    if (
+      !ConfigurationManager.INSTANCE.config.toggleForSelf
+        || (MessagingEntrypointImpl.MESSENGER_INSTANCE == null && ConfigurationManager.INSTANCE.config.disableFallback)
+    ) {
+      original.call(packet, channelFutureListener, bl);
+      return;
+    }
+
     final String cmd;
     if (packet instanceof ServerboundChatCommandPacket(final String command)) {
       cmd = "/" + command;
