@@ -24,7 +24,7 @@ public final class ConfigurationManager {
         .path(LOADER.getConfigDir().resolve(MOD_ID + ".toml"))
         .build();
 
-      this.node = this.loader.createNode();
+      this.node = this.loader.load();
       this.config = Objects.requireNonNull(this.node.get(Configuration.class));
       save();
     } catch (Exception e) {
