@@ -47,6 +47,11 @@ public final class ModMenuIntegration implements ModMenuApi {
       + " mod installed."
   );
   private static final Component FORCE_COMPRESSION = Component.literal("Force compression for all messages");
+  private static final Component IGNORE_CSPY_LIKE = Component.literal("Ignore cspy like");
+  private static final Component IGNORE_CSPY_LIKE_TOOLTIP = Component.literal(
+    "Workaround until a fix for #3 is found. Uses heuristic to detect CommandSpy messages, and ignores them if "
+      + "detected. Might incorrectly trigger for other system chat types."
+  );
 
   @Override
   public ConfigScreenFactory<?> getModConfigScreenFactory() {
@@ -130,6 +135,16 @@ public final class ModMenuIntegration implements ModMenuApi {
             .startBooleanToggle(FORCE_COMPRESSION, ConfigurationManager.INSTANCE.config.forceCompress)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.forceCompress = newValue;
+              ConfigurationManager.INSTANCE.save();
+            })
+            .build()
+        ).addEntry(
+          builder
+            .entryBuilder()
+            .startBooleanToggle(IGNORE_CSPY_LIKE, ConfigurationManager.INSTANCE.config.ignoreCspyLike)
+            .setTooltip(IGNORE_CSPY_LIKE_TOOLTIP)
+            .setSaveConsumer(newValue -> {
+              ConfigurationManager.INSTANCE.config.ignoreCspyLike = newValue;
               ConfigurationManager.INSTANCE.save();
             })
             .build()

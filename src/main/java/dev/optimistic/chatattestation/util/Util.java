@@ -1,5 +1,6 @@
 package dev.optimistic.chatattestation.util;
 
+import dev.optimistic.chatattestation.config.ConfigurationManager;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.ChatTypeDecoration;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +35,7 @@ public final class Util {
       if (!regularExtractor.matches()) return null;
       // TODO: Handle spaces in names.
       final var sender = regularExtractor.group(1).split(" ");
+      if (sender.length == 1 && ConfigurationManager.INSTANCE.config.ignoreCspyLike) return null;
       return new SystemExtraction(sender[sender.length - 1], regularExtractor.group(2));
     }
   }
