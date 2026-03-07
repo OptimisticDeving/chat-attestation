@@ -178,10 +178,14 @@ public abstract class ChatListenerMixin {
       if (payload == null) {
         pyl = null;
       } else {
+        payload.markReaderIndex();
         pyl = new byte[payload.readableBytes()];
         payload.readBytes(pyl);
-        if (sender != Util.NIL_UUID)
+        if (sender != Util.NIL_UUID) {
           MessagingEntrypointImpl.PAYLOAD_MAP.remove(new MessagingEntrypointImpl.StreamCacheKey(wrapped, Util.NIL_UUID));
+        } else {
+          payload.resetReaderIndex();
+        }
       }
     }
 
