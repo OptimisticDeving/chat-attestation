@@ -26,7 +26,7 @@ bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycast
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 
 adventure-platform-fabric = { module = "net.kyori:adventure-platform-fabric", version.ref = "adventure-fabric" }
-messaginglib = { module = "land.chipmunk.code.kaboomstandardsorganization.messaginglib:fabric", version.ref = "messaging-lib" }
+messaginglib-fabric = { module = "land.chipmunk.code.kaboomstandardsorganization.messaginglib:fabric", version.ref = "messaging-lib" }
 
 expiringmap = { module = "net.jodah:expiringmap", version.ref = "expiring-map" }
 

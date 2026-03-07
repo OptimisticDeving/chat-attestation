@@ -11,3 +11,5 @@ plugins {
 }
 
 rootProject.name = "chat-attestation"
+
+include("common", "fabric")

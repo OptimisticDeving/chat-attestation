@@ -4,7 +4,7 @@ import kotlin.reflect.full.declaredMembers
 import kotlin.reflect.jvm.isAccessible
 
 plugins {
-  java
+  common
 
   alias(libs.plugins.fabric.loom)
 }
@@ -17,11 +17,11 @@ loom {
       it.name == "server"
     }
   }
+
+  runs.configureEach { ideConfigGenerated(true) }
 }
 
-java {
-  toolchain.languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
-}
+base.archivesName = rootProject.name
 
 configurations {
   compileClasspath {
@@ -33,17 +33,9 @@ configurations {
   }
 }
 
-group = "dev.optimistic"
-version = "1.0.0-SNAPSHOT"
-
 repositories {
   maven("https://maven.shedaniel.me/")
   maven("https://maven.terraformersmc.com/releases/")
-  maven("https://code.chipmunk.land/api/packages/kaboomstandardsorganization/maven") {
-    content {
-      includeGroupAndSubgroups("land.chipmunk.code")
-    }
-  }
 }
 
 val expandedFabricVersion = "${libs.versions.fabric.api.get()}+${libs.versions.minecraft.get()}"
@@ -54,7 +46,7 @@ dependencies {
 
   modImplementation(libs.fabric.loader)
   modImplementation(include(libs.adventure.platform.fabric.get())!!)
-  modImplementation(libs.messaginglib)
+  modImplementation(libs.messaginglib.fabric)
 
   modApi(libs.clothconfig)
   modApi(libs.modmenu)
