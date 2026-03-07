@@ -9,7 +9,7 @@ bouncycastle = "1.83"
 fabric-api = "0.141.3"
 zstd-jni = "1.5.7-7"
 adventure-fabric = "6.8.0"
-messaging-lib = "1.1.0-SNAPSHOT"
+messaging-lib = "2.0.0-SNAPSHOT"
 expiring-map = "0.5.11"
 
 java = "21"
@@ -26,7 +26,7 @@ bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycast
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
 
 adventure-platform-fabric = { module = "net.kyori:adventure-platform-fabric", version.ref = "adventure-fabric" }
-messaginglib = { module = "land.chipmunk.code.kaboom-standards-organization:messaging-lib", version.ref = "messaging-lib" }
+messaginglib = { module = "land.chipmunk.code.kaboomstandardsorganization.messaginglib:fabric", version.ref = "messaging-lib" }
 
 expiringmap = { module = "net.jodah:expiringmap", version.ref = "expiring-map" }
 
