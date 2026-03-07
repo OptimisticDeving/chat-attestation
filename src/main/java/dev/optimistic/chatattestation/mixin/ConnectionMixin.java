@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.CHANNEL_NAME;
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.PAYLOAD_MAP;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
+import static dev.optimistic.chatattestation.util.Constants.SIGN_EXECUTOR;
 import static io.netty.buffer.Unpooled.buffer;
 
 // Intercept here instead of in ClientPacketListener for compatibility with ChipmunkMod.
@@ -60,15 +61,15 @@ public abstract class ConnectionMixin {
       return;
     }
 
-    final var payload = new ByteArrayOutputStream();
-    try {
-      Payload.write(cmd.getBytes(StandardCharsets.UTF_8), new DataOutputStream(payload));
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Failed to write payload");
-    }
+    SIGN_EXECUTOR.submit(() -> {
+      final var payload = new ByteArrayOutputStream();
+      try {
+        Payload.write(cmd.getBytes(StandardCharsets.UTF_8), new DataOutputStream(payload));
+      } catch (IOException e) {
+        throw new IllegalArgumentException("Failed to write payload");
+      }
 
-    final var mc = Minecraft.getInstance();
-    mc.schedule(() -> {
+      final var mc = Minecraft.getInstance();
       final var buf = buffer();
       final var contentHash = createHash(cmd.getBytes(StandardCharsets.UTF_8));
       buf.writeBytes(contentHash);
@@ -82,8 +83,7 @@ public abstract class ConnectionMixin {
       buf.skipBytes(16);
       PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, conn.getLocalGameProfile().id()), buf.copy());
       PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, Util.NIL_UUID), buf);
-
-      original.call(packet, channelFutureListener, bl);
+      mc.schedule(() -> original.call(packet, channelFutureListener, bl));
     });
   }
 }
