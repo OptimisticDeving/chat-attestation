@@ -69,7 +69,7 @@ public abstract class ClientPacketListenerMixin {
         }
       } else {
         final var buf = buffer();
-        msg = string.length() > MESSAGE_LIMIT ? "$$" : string;
+        msg = compressed ? "$$" : string;
 
         final var contentHash = createHash(msg.getBytes(StandardCharsets.UTF_8));
         buf.writeBytes(contentHash);

@@ -40,7 +40,7 @@ public record Payload(byte[] msg, byte[] signature, byte[] key, byte[] nonce, lo
   }
 
   public static boolean write(byte[] msg, DataOutput output) throws IOException {
-    final boolean compressed = msg.length > ORIGINAL_MSG_BUDGET;
+    final boolean compressed = msg.length > ORIGINAL_MSG_BUDGET || ConfigurationManager.INSTANCE.config.forceCompress;
 
     if (compressed) {
       final var out = new ByteArrayOutputStream();

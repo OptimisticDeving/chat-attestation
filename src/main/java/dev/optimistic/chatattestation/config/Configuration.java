@@ -19,6 +19,7 @@ public final class Configuration {
   public volatile boolean toggleForSelf = true;
   public volatile boolean forceFallback = false;
   public volatile boolean disableFallback = true;
+  public volatile boolean forceCompress = false;
   public volatile int chatMsgTrunc = 2048;
   public volatile int maxCompressedPayload = this.chatMsgTrunc * 4;
 }

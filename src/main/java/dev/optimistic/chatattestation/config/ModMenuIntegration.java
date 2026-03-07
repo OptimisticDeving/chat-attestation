@@ -10,6 +10,11 @@ import net.minecraft.network.chat.Component;
 public final class ModMenuIntegration implements ModMenuApi {
   private static final Component TITLE = Component.literal("Chat Attestation Config");
   private static final Component MANIFEST_LIST = Component.literal("Key Manifests");
+  private static final Component MANIFEST_LIST_TOOLTIP =
+    Component.literal(
+      "An operator can assign keys to any username they like. Ensure that you trust them. " +
+        "Key origin will be shown when hovering over the tag of a chat message."
+    ).withStyle(ChatFormatting.RED);
   private static final Component REMOTE = Component.literal("Remote");
   private static final Component LOCAL = Component.literal("Local");
   private static final Component TOGGLE_FOR_SELF = Component.literal("Sign own messages");
@@ -41,11 +46,7 @@ public final class ModMenuIntegration implements ModMenuApi {
       " This is enabled by default due to user complaints about the unreadability for users who do not have the"
       + " mod installed."
   );
-  private static final Component MANIFEST_LIST_TOOLTIP =
-    Component.literal(
-      "An operator can assign keys to any username they like. Ensure that you trust them. " +
-        "Key origin will be shown when hovering over the tag of a chat message."
-    ).withStyle(ChatFormatting.RED);
+  private static final Component FORCE_COMPRESSION = Component.literal("Force compression for all messages");
 
   @Override
   public ConfigScreenFactory<?> getModConfigScreenFactory() {
@@ -120,6 +121,15 @@ public final class ModMenuIntegration implements ModMenuApi {
             .setTooltip(DISABLE_FALLBACK_TOOLTIP)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.disableFallback = newValue;
+              ConfigurationManager.INSTANCE.save();
+            })
+            .build()
+        ).addEntry(
+          builder
+            .entryBuilder()
+            .startBooleanToggle(FORCE_COMPRESSION, ConfigurationManager.INSTANCE.config.forceCompress)
+            .setSaveConsumer(newValue -> {
+              ConfigurationManager.INSTANCE.config.forceCompress = newValue;
               ConfigurationManager.INSTANCE.save();
             })
             .build()
