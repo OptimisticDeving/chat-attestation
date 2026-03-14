@@ -8,7 +8,7 @@ import static dev.optimistic.chatattestation.util.Constants.LOADER;
 
 @ConfigSerializable
 public final class Configuration {
-  private static final String DEFAULT_MANIFEST = "https://opt.chipmunk.land/key-manifest-v1.json";
+  private static final String DEFAULT_MANIFEST = "https://optmstc.dev/key-manifest-v1.json";
 
   public volatile List<String> keyManifestUrls =
     LOADER.isDevelopmentEnvironment() ?
