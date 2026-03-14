@@ -6,6 +6,8 @@ import dev.optimistic.chatattestation.config.ConfigurationManager;
 import net.jodah.expiringmap.ExpiringMap;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -15,6 +17,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -78,7 +81,6 @@ public final class SigningManager {
       }
     }
 
-
     if (Files.notExists(keyPath)) {
       try {
         this.selfKey = new Ed25519PrivateKeyParameters(SecureRandom.getInstanceStrong());
@@ -86,16 +88,33 @@ public final class SigningManager {
         throw new IllegalArgumentException("JVM does not provide strong secure random impl", e);
       }
 
-      try {
-        Files.write(keyPath, this.selfKey.getEncoded());
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to save private key", e);
-      }
+      this.savePrivateKey(keyPath);
     } else {
+      final byte[] keyData;
+
       try {
-        this.selfKey = new Ed25519PrivateKeyParameters(Files.readAllBytes(keyPath));
+        keyData = Files.readAllBytes(keyPath);
       } catch (IOException e) {
-        throw new IllegalArgumentException("Failed to load key from file", e);
+        throw new UncheckedIOException("Failed to load stored private key", e);
+      }
+
+      if (keyData.length == 32) {
+        this.selfKey = new Ed25519PrivateKeyParameters(keyData);
+        this.savePrivateKey(keyPath);
+      } else {
+        final var extractedData = Base64.getDecoder().decode(
+          new String(keyData, StandardCharsets.UTF_8)
+            .lines()
+            .filter(l -> !l.startsWith("-"))
+            .map(String::trim)
+            .collect(Collectors.joining())
+        );
+
+        try {
+          this.selfKey = (Ed25519PrivateKeyParameters) PrivateKeyFactory.createKey(extractedData);
+        } catch (IOException e) {
+          throw new IllegalArgumentException("Invalid private key", e);
+        }
       }
     }
 
@@ -127,6 +146,23 @@ public final class SigningManager {
 
   private static long getCurrentPeriod() {
     return 0;
+  }
+
+  private void savePrivateKey(Path keyPath) {
+    try (final var out = Files.newBufferedWriter(keyPath)) {
+      out.write("-----BEGIN PRIVATE KEY-----\n");
+
+      final var encoded = Base64.getEncoder().encodeToString(
+        PrivateKeyInfoFactory.createPrivateKeyInfo(
+          this.selfKey
+        ).getEncoded()
+      );
+      out.write(encoded);
+      out.write("\n-----END PRIVATE KEY-----");
+      out.flush();
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save private key", e);
+    }
   }
 
   private CompletableFuture<KeyManifest> refetchManifest(String url) {
