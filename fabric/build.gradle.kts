@@ -103,7 +103,7 @@ tasks {
 
     inputs.properties(createVersionMap())
     inputs.property("version", project.version)
-    inputs.property("name", project.name)
+    inputs.property("name", rootProject.name)
 
     filesMatching("**/*.json") {
       expand(inputs.properties)
