@@ -1,0 +1,28 @@
+name: build
+on: [ pull_request, push ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v6
+      - uses: https://code.forgejo.org/actions/cache@v5
+        with:
+          path: |
+            /opt/hostedtoolcache/
+            .gradle
+            build
+            ~/.gradle
+            ~/.m2
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ env.GITHUB_REPOSITORY }}-cache
+      - uses: https://github.com/actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          check-latest: true
+      - run: ./gradlew --no-daemon build --stacktrace --info
+      - uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: Artifacts
+          path: '**/build/libs/'
+          if-no-files-found: error
