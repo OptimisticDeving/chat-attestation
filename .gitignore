@@ -1,8 +1,8 @@
-/.idea
-/build
-/run
-/.*gradle
-/.vscode
+.idea/
+build/
+run/
+.*gradle/
+.vscode/
 bin/
 tmp/
 .settings
