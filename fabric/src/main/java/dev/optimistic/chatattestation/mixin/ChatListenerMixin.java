@@ -46,6 +46,7 @@ import java.util.regex.Matcher;
 import static dev.optimistic.chatattestation.crypto.Payload.withAdditionalData;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
 import static dev.optimistic.chatattestation.util.Constants.*;
+import static dev.optimistic.chatattestation.util.NormalizationUtil.normalizeString;
 import static dev.optimistic.chatattestation.util.Util.extractDisguisedContent;
 import static dev.optimistic.chatattestation.util.Util.extractSystemContent;
 
@@ -155,7 +156,7 @@ public abstract class ChatListenerMixin {
     String originalContent,
     UUID sender
   ) {
-    final String nick = name.trim();
+    final String nick = normalizeString(name.trim());
     final String msg;
     final byte[] pyl;
     final boolean isFallback = contents.matches();
