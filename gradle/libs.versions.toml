@@ -9,7 +9,7 @@ bouncycastle = "1.83"
 fabric-api = "0.141.3"
 zstd-jni = "1.5.7-7"
 adventure-fabric = "6.8.0"
-messaging-lib = "3.0.0"
+messaging-lib = "3.1.0"
 expiring-map = "0.5.11"
 
 java = "21"
