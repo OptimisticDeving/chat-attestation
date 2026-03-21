@@ -13,6 +13,11 @@ java {
 }
 
 repositories {
+  maven("https://code.optmstc.dev/api/packages/kso/maven") {
+    content {
+      includeGroupAndSubgroups("land.chipmunk.code")
+    }
+  }
   maven("https://code.chipmunk.land/api/packages/kaboomstandardsorganization/maven") {
     content {
       includeGroupAndSubgroups("land.chipmunk.code")
