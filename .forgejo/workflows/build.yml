@@ -17,7 +17,7 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-${{ env.GITHUB_REPOSITORY }}-cache
       - uses: https://github.com/actions/setup-java@v5
         with:
-          java-version: '21'
+          java-version: '25'
           distribution: 'temurin'
           check-latest: true
       - run: ./gradlew --no-daemon build --stacktrace --info

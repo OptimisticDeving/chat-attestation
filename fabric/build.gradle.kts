@@ -38,18 +38,15 @@ repositories {
   maven("https://maven.terraformersmc.com/releases/")
 }
 
-val expandedFabricVersion = "${libs.versions.fabric.api.get()}+${libs.versions.minecraft.get()}"
-
 dependencies {
   minecraft(libs.minecraft)
-  mappings(loom.officialMojangMappings())
 
-  modImplementation(libs.fabric.loader)
-  modImplementation(include(libs.adventure.platform.fabric.get())!!)
-  modImplementation(libs.messaginglib.fabric)
+  implementation(libs.fabric.loader)
+  implementation(include(libs.adventure.platform.fabric.get())!!)
+  implementation(libs.messaginglib.fabric)
 
-  modApi(libs.clothconfig)
-  modApi(libs.modmenu)
+  api(libs.clothconfig)
+  api(libs.modmenu)
 
   implementation(include(libs.expiringmap.get())!!)
 
