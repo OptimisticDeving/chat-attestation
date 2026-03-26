@@ -2,7 +2,7 @@
 loom = "1.15-SNAPSHOT"
 minecraft = "26.1"
 fabric-loader = "0.18.4"
-cloth-config = "21.11.153"
+cloth-config = "26.1.154"
 modmenu = "18.0.0-alpha.8"
 jtoml = "1.5.1"
 bouncycastle = "1.83"
