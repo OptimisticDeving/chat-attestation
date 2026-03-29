@@ -7,7 +7,7 @@ modmenu = "18.0.0-alpha.8"
 jtoml = "1.5.1"
 bouncycastle = "1.83"
 zstd-jni = "1.5.7-7"
-adventure-fabric = "6.8.0"
+adventure-fabric = "6.9.0-SNAPSHOT"
 messaging-lib = "3.1.1-SNAPSHOT"
 expiring-map = "0.5.11"
 

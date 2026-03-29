@@ -34,6 +34,14 @@ configurations {
 }
 
 repositories {
+  maven("https://central.sonatype.com/repository/maven-snapshots") {
+    mavenContent {
+      snapshotsOnly()
+
+      includeGroupAndSubgroups("net.kyori")
+    }
+  }
+
   maven("https://maven.shedaniel.me/")
   maven("https://maven.terraformersmc.com/releases/")
 }
