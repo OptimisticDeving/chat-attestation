@@ -1,6 +1,6 @@
 package dev.optimistic.chatattestation.duck;
 
-import net.minecraft.client.GuiMessage;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
 
 import java.util.function.Consumer;
 

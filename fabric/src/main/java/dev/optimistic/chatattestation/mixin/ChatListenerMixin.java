@@ -15,11 +15,11 @@ import io.netty.buffer.ByteBuf;
 import net.kyori.adventure.platform.modcommon.MinecraftClientAudiences;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.GuiMessage;
-import net.minecraft.client.GuiMessageTag;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.multiplayer.chat.ChatListener;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
+import net.minecraft.client.multiplayer.chat.GuiMessageTag;
 import net.minecraft.network.chat.*;
 import net.minecraft.util.StringUtil;
 import net.minecraft.util.Util;
@@ -138,6 +138,7 @@ public abstract class ChatListenerMixin {
           }
         ),
         original.signature(),
+        original.source(),
         newTag
       );
       final int idx = allMessages.indexOf(original);
@@ -295,31 +296,37 @@ public abstract class ChatListenerMixin {
   }
 
   @WrapOperation(
-    method = "method_45745",
+    method = "lambda$handleDisguisedChatMessage$0",
     at = @At(
       value = "INVOKE",
       target =
         "Lnet/minecraft/client/gui/components/ChatComponent;" +
-          "addMessage(Lnet/minecraft/network/chat/Component;)V"
+          "addPlayerMessage(Lnet/minecraft/network/chat/Component;" +
+          "Lnet/minecraft/network/chat/MessageSignature;" +
+          "Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V"
     )
   )
   private void onHandleDisguisedChatMessage$addMessage(
     ChatComponent instance,
-    Component component,
+    Component message,
+    MessageSignature signature,
+    GuiMessageTag tag,
     Operation<Void> original,
-    @Local(argsOnly = true) ChatType.Bound chatType
+    @Local(argsOnly = true, name = "boundChatType") ChatType.Bound boundChatType
   ) {
-    final var extracted = extractDisguisedContent(component.getString(), chatType);
+    final var extracted = extractDisguisedContent(message.getString(), boundChatType);
 
     if (extracted == null) {
       LOGGER.warn("Failed to extract content from chat message");
-      original.call(instance, component);
+      original.call(instance, message, signature, tag);
       return;
     }
 
     original.call(
       instance,
-      injectComponent(extracted, component, chatType, Util.NIL_UUID)
+      injectComponent(extracted, message, boundChatType, Util.NIL_UUID),
+      signature,
+      tag
     );
   }
 
@@ -327,23 +334,24 @@ public abstract class ChatListenerMixin {
     method = "handleSystemMessage",
     at = @At(
       value = "INVOKE",
-      target = "Lnet/minecraft/client/gui/components/ChatComponent;addMessage(Lnet/minecraft/network/chat/Component;)V"
+      target = "Lnet/minecraft/client/gui/components/ChatComponent;" +
+        "addServerSystemMessage(Lnet/minecraft/network/chat/Component;)V"
     )
   )
   private void onHandleSystemMessage$addMessage(
     ChatComponent instance,
-    Component component,
+    Component message,
     Operation<Void> original
   ) {
-    final var extracted = extractSystemContent(component.getString());
+    final var extracted = extractSystemContent(message.getString());
     if (extracted == null) {
-      original.call(instance, component);
+      original.call(instance, message);
       return;
     }
 
     original.call(
       instance,
-      injectComponent(extracted.content(), component, extracted.sender(), Util.NIL_UUID)
+      injectComponent(extracted.content(), message, extracted.sender(), Util.NIL_UUID)
     );
   }
 
@@ -352,25 +360,25 @@ public abstract class ChatListenerMixin {
     at = @At(
       value = "INVOKE",
       target = "Lnet/minecraft/client/gui/components/ChatComponent;" +
-        "addMessage(Lnet/minecraft/network/chat/Component;" +
+        "addPlayerMessage(Lnet/minecraft/network/chat/Component;" +
         "Lnet/minecraft/network/chat/MessageSignature;" +
-        "Lnet/minecraft/client/GuiMessageTag;)V"
+        "Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V"
     )
   )
   private void showMessageToPlayer$addMessage(
     ChatComponent instance,
-    Component component,
-    MessageSignature messageSignature,
-    GuiMessageTag guiMessageTag,
+    @SuppressWarnings("NameDoesntMatchTargetClass") Component component,
+    MessageSignature signature,
+    GuiMessageTag tag,
     Operation<Void> original,
-    @Local(argsOnly = true) ChatType.Bound chatType,
-    @Local(argsOnly = true) PlayerChatMessage chatMessage
+    @Local(argsOnly = true, name = "boundChatType") ChatType.Bound boundChatType,
+    @Local(argsOnly = true, name = "message") PlayerChatMessage message
   ) {
     original.call(
       instance,
-      injectComponent(chatMessage.signedContent(), component, chatType, chatMessage.sender()),
-      messageSignature,
-      guiMessageTag
+      injectComponent(message.signedContent(), component, boundChatType, message.sender()),
+      signature,
+      tag
     );
   }
 }

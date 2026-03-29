@@ -24,6 +24,7 @@ public final class MessagingEntrypointImpl implements FabricMessagingEntrypoint,
 
   @Override
   public void onRegistrationAvailable(@NotNull FabricMessenger messenger) {
+    System.out.println("Registration available");
     MESSENGER_INSTANCE = messenger;
 
     MESSENGER_INSTANCE.receivePayloads(CHANNEL_NAME, this);
