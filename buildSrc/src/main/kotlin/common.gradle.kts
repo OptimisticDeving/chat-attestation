@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.optimistic.chatattestation"
-version = "1.0.0-SNAPSHOT"
+version = "1.0.0"
 
 val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
 
