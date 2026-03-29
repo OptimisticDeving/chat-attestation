@@ -18,9 +18,9 @@ Encoded public key").
 
 ## Issues
 
-- Incompatible with ChatPatches ([#2](https://codeberg.org/opt/chat-attestation/issues/2))
+- Incompatible with ChatPatches ([#2](https://code.optmstc.dev/opt/chat-attestation/issues/2))
   - Seems that the contents are updated after being added to the chat component. This breaks system chat.
-- Compressed normal chat does not work with ChipmunkMod ([#4](https://codeberg.org/opt/chat-attestation/issues/4))
+- Compressed normal chat does not work with ChipmunkMod ([#4](https://code.optmstc.dev/opt/chat-attestation/issues/4))
   - You cannot send compressed normal chat, but you can read it. Seems like sendChat is invoked twice.
-- Occasional command sign failure ([#3](https://codeberg.org/opt/chat-attestation/issues/3))
+- Occasional command sign failure ([#3](https://code.optmstc.dev/opt/chat-attestation/issues/3))
   - Looks to be a race condition. Honestly, I think I might just remove this feature.
