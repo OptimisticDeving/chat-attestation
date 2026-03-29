@@ -3,10 +3,10 @@ plugins {
   `maven-publish`
 }
 
-group = "dev.optimistic.chatattestation"
-version = "1.0.0"
-
 val libs = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+
+group = "dev.optimistic.chatattestation"
+version = libs.findVersion("self").get()
 
 java {
   toolchain.languageVersion = JavaLanguageVersion.of(libs.findVersion("java").get().toString())
