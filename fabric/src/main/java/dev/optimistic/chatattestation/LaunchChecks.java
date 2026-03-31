@@ -3,6 +3,7 @@ package dev.optimistic.chatattestation;
 import net.fabricmc.api.ClientModInitializer;
 
 import static dev.optimistic.chatattestation.util.Constants.LOADER;
+import static dev.optimistic.chatattestation.util.Constants.LOGGER;
 
 public final class LaunchChecks implements ClientModInitializer {
   @Override
@@ -11,6 +12,6 @@ public final class LaunchChecks implements ClientModInitializer {
     final boolean hasClothConfig = LOADER.isModLoaded("cloth-config");
 
     if (hasModMenu == hasClothConfig) return;
-    throw new UnsupportedOperationException("Both modmenu & cloth-config are required, not just one.");
+    LOGGER.warn("Both Mod Menu & Cloth Config should be present for the optimal experience, not just one of the two.");
   }
 }
