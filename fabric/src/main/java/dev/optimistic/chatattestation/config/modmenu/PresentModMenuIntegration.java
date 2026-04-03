@@ -1,13 +1,14 @@
-package dev.optimistic.chatattestation.config;
+package dev.optimistic.chatattestation.config.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import dev.optimistic.chatattestation.config.ConfigurationManager;
 import dev.optimistic.chatattestation.crypto.SigningManager;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
-public final class ModMenuIntegration implements ModMenuApi {
+public final class PresentModMenuIntegration implements ModMenuApi {
   private static final Component TITLE = Component.literal("Chat Attestation Config");
   private static final Component MANIFEST_LIST = Component.literal("Key Manifests");
   private static final Component MANIFEST_LIST_TOOLTIP =

@@ -11,7 +11,7 @@
   "environment": "client",
   "entrypoints": {
     "modmenu": [
-      "dev.optimistic.chatattestation.config.ModMenuIntegration"
+      "dev.optimistic.chatattestation.config.modmenu.ModMenuIntegration"
     ],
     "client": [
       "dev.optimistic.chatattestation.crypto.SigningManager::init",
