@@ -3,12 +3,13 @@ package dev.optimistic.chatattestation.config.modmenu;
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
+import org.jspecify.annotations.NonNull;
 
 public final class FallbackModMenuIntegration implements ModMenuApi {
   @Override
@@ -35,10 +36,10 @@ public final class FallbackModMenuIntegration implements ModMenuApi {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int i, int j, float f) {
-      super.render(guiGraphics, i, j, f);
+    public void extractRenderState(@NonNull GuiGraphicsExtractor extractor, int mX, int mY, float partialTick) {
+      super.extractRenderState(extractor, mX, mY, partialTick);
 
-      guiGraphics.drawString(this.font, TITLE, 0, 0, ARGB.white(255));
+      extractor.text(this.font, TITLE, 0, 0, ARGB.white(255));
     }
 
     @Override
