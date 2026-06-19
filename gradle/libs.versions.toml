@@ -1,18 +1,18 @@
 [versions]
-loom = "1.15-SNAPSHOT"
-minecraft = "26.1"
-fabric-loader = "0.18.4"
+loom = "1.17-SNAPSHOT"
+minecraft = "26.1.2"
+fabric-loader = "0.19.3"
 cloth-config = "26.1.154"
-modmenu = "18.0.0-alpha.8"
-jtoml = "1.5.1"
-bouncycastle = "1.83"
-zstd-jni = "1.5.7-7"
+modmenu = "18.0.0-beta.1"
+jtoml = "1.5.2"
+bouncycastle = "1.84"
+zstd-jni = "1.5.7-11"
 adventure-fabric = "6.9.0-SNAPSHOT"
 messaging-lib = "3.1.1-SNAPSHOT"
 expiring-map = "0.5.11"
 
 java = "25"
-self = "1.0.1"
+self = "1.0.2"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
