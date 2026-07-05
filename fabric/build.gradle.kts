@@ -142,6 +142,6 @@ modrinth {
   loaders.addAll("fabric")
 
   dependencies {
-    required.version("messaging-lib", libs.versions.messaging.lib.get())
+    required.project("messaging-lib")
   }
 }
