@@ -11,7 +11,7 @@ messaging-lib = "3.2.0"
 expiring-map = "0.5.11"
 
 java = "25"
-self = "1.0.2"
+self = "1.0.3"
 
 loom = "1.17-SNAPSHOT"
 minotaur = "2.+"
