@@ -44,7 +44,7 @@ public final class FallbackModMenuIntegration implements ModMenuApi {
 
     @Override
     public void onClose() {
-      Minecraft.getInstance().setScreen(this.parent);
+      Minecraft.getInstance().gui.setScreen(this.parent);
     }
   }
 }

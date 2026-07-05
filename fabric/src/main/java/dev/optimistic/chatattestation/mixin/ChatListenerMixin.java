@@ -81,7 +81,7 @@ public abstract class ChatListenerMixin {
   @Unique
   private static GuiMessageTag createTag(ChatFormatting color, String description) {
     return new GuiMessageTag(
-      Objects.requireNonNull(color.getColor()),
+      Objects.requireNonNull(TextColor.fromLegacyFormat(color)).getValue(),
       null,
       Component.literal(description),
       "chat-attestation"
@@ -124,7 +124,7 @@ public abstract class ChatListenerMixin {
     GuiMessageTag newTag
   ) {
     this.minecraft.schedule(() -> {
-      final var chatComponent = this.minecraft.gui.getChat();
+      final var chatComponent = this.minecraft.gui.hud.getChat();
       final var chatComponentDuck = (ChatComponentDuck) chatComponent;
       final var chatComponentAccessor = (ChatComponentAccessor) chatComponent;
       final var allMessages = chatComponentAccessor.getAllMessages();
