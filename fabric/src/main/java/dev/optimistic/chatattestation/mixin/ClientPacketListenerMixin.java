@@ -62,7 +62,7 @@ public abstract class ClientPacketListenerMixin {
         msg = "$$" + (compressed ? "" : content) + "$$" + pyl;
 
         if (msg.length() > MESSAGE_LIMIT) {
-          mc.schedule(() -> mc.gui.getChat().addClientSystemMessage(MSG_TOO_LARGE));
+          mc.schedule(() -> mc.gui.hud.getChat().addClientSystemMessage(MSG_TOO_LARGE));
           return;
         }
       } else {
