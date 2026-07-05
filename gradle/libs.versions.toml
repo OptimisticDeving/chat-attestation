@@ -1,5 +1,4 @@
 [versions]
-loom = "1.17-SNAPSHOT"
 minecraft = "26.1.2"
 fabric-loader = "0.19.3"
 cloth-config = "26.1.154"
@@ -13,6 +12,9 @@ expiring-map = "0.5.11"
 
 java = "25"
 self = "1.0.2"
+
+loom = "1.17-SNAPSHOT"
+minotaur = "2.+"
 
 [libraries]
 minecraft = { module = "com.mojang:minecraft", version.ref = "minecraft" }
@@ -32,3 +34,4 @@ expiringmap = { module = "net.jodah:expiringmap", version.ref = "expiring-map" }
 
 [plugins]
 fabric-loom = { id = "net.fabricmc.fabric-loom", version.ref = "loom" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }

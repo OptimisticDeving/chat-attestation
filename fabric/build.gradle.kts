@@ -7,6 +7,7 @@ plugins {
   common
 
   alias(libs.plugins.fabric.loom)
+  alias(libs.plugins.minotaur)
 }
 
 val shade: Configuration by configurations.creating
@@ -127,5 +128,20 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.FAIL
       }
     }
+  }
+}
+
+
+modrinth {
+  token.set(System.getenv("MODRINTH_TOKEN"))
+  projectId.set("chat-attestation")
+  uploadFile.set(tasks.jar)
+  if (project.version.toString().endsWith("-SNAPSHOT")) versionType.set("beta") else versionType.set("release")
+  additionalFiles.addAll(tasks.sourcesJar)
+  gameVersions.addAll(libs.versions.minecraft.get())
+  loaders.addAll("fabric")
+
+  dependencies {
+    required.version("messaging-lib", libs.versions.messaging.lib.get())
   }
 }

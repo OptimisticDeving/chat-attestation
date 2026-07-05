@@ -10,6 +10,7 @@ version = libs.findVersion("self").get()
 
 java {
   toolchain.languageVersion = JavaLanguageVersion.of(libs.findVersion("java").get().toString())
+  withSourcesJar()
 }
 
 repositories {
