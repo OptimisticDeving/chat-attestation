@@ -35,7 +35,7 @@ public final class SigningManager {
   public static final SigningManager INSTANCE = new SigningManager();
   public static final long PERIOD = 10_000L;
   public final byte[] selfHash;
-  private final ExecutorService requestExecutor = Executors.newCachedThreadPool();
+  private final ExecutorService requestExecutor = Executors.newCachedThreadPool(DAEMON_THREAD_FACTORY);
   private final StampedLock lock = new StampedLock();
   private final Map<String, KeyManifest> manifests;
   private final Set<String> nicks = new HashSet<>();
