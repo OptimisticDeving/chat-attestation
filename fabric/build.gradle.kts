@@ -42,6 +42,11 @@ repositories {
       includeGroupAndSubgroups("net.kyori")
     }
   }
+  maven("https://central.sonatype.com/repository/maven-releases") {
+    mavenContent {
+      includeGroupAndSubgroups("net.kyori")
+    }
+  }
 
   maven("https://maven.shedaniel.me/")
   maven("https://maven.terraformersmc.com/releases/")
