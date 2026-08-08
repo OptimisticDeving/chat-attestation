@@ -2,6 +2,8 @@ package dev.optimistic.chatattestation.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.optimistic.chatattestation.config.Configuration;
+import dev.optimistic.chatattestation.config.ConfigurationManager;
 import dev.optimistic.chatattestation.mixin.accessor.EditBoxAccessor;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
@@ -27,18 +29,20 @@ public abstract class ChatScreenMixin {
       target = "Lnet/minecraft/util/StringUtil;trimChatMessage(Ljava/lang/String;)Ljava/lang/String;"
     )
   )
-  private String normalizeChatMessage$trimChatMessage(String string, Operation<String> original) {
-    return string;
+  private String normalizeChatMessage$trimChatMessage(String message, Operation<String> original) {
+    return message;
   }
 
   @Inject(method = "keyPressed", at = @At("HEAD"))
-  private void onKeyPressed(KeyEvent keyEvent, CallbackInfoReturnable<Boolean> cir) {
-    final boolean isCmd = this.input.getValue().startsWith("/");
+  private void onKeyPressed(KeyEvent event, CallbackInfoReturnable<Boolean> cir) {
+    final boolean cannotCompress = this.input.getValue().startsWith("/")
+      || ConfigurationManager.INSTANCE.config.disableCompress;
+
     if (this.originalLen == -1) {
-      if (isCmd) return;
+      if (cannotCompress) return;
       this.originalLen = ((EditBoxAccessor) this.input).invokeGetMaxLength();
       this.input.setMaxLength(Integer.MAX_VALUE);
-    } else if (isCmd) {
+    } else if (cannotCompress) {
       this.input.setMaxLength(this.originalLen);
       this.originalLen = -1;
     }

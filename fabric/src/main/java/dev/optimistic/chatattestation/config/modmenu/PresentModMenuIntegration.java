@@ -53,6 +53,13 @@ public final class PresentModMenuIntegration implements ModMenuApi {
     "Workaround until a fix for #3 is found. Uses heuristic to detect CommandSpy messages, and ignores them if "
       + "detected. Might incorrectly trigger for other system chat types."
   );
+  private static final Component DISABLE_COMPRESSION = Component.literal("Never compress messages");
+  private static final Component DISABLE_COMPRESSION_TOOLTIP = Component.literal(
+    "Completely disables compression for messages. " +
+      "While this will prevent you from sending long messages, " +
+      "it will prevent you from accidentally sending a compressed message when conversing with a user who does not have" +
+      " chat-attestation installed."
+  );
 
   @Override
   public ConfigScreenFactory<?> getModConfigScreenFactory() {
@@ -146,6 +153,16 @@ public final class PresentModMenuIntegration implements ModMenuApi {
             .setTooltip(IGNORE_CSPY_LIKE_TOOLTIP)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.ignoreCspyLike = newValue;
+              ConfigurationManager.INSTANCE.save();
+            })
+            .build()
+        ).addEntry(
+          builder
+            .entryBuilder()
+            .startBooleanToggle(DISABLE_COMPRESSION, ConfigurationManager.INSTANCE.config.disableCompress)
+            .setTooltip(DISABLE_COMPRESSION_TOOLTIP)
+            .setSaveConsumer(newValue -> {
+              ConfigurationManager.INSTANCE.config.disableCompress = newValue;
               ConfigurationManager.INSTANCE.save();
             })
             .build()
