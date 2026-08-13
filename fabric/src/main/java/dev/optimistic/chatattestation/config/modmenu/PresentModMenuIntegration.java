@@ -2,7 +2,9 @@ package dev.optimistic.chatattestation.config.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
+import dev.optimistic.chatattestation.MessagingEntrypointImpl;
 import dev.optimistic.chatattestation.config.ConfigurationManager;
+import dev.optimistic.chatattestation.crypto.Payload;
 import dev.optimistic.chatattestation.crypto.SigningManager;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
 import net.minecraft.ChatFormatting;
@@ -121,9 +123,13 @@ public final class PresentModMenuIntegration implements ModMenuApi {
             .entryBuilder()
             .startIntField(MAX_COMPRESSED_PAYLOAD_LEN, ConfigurationManager.INSTANCE.config.maxCompressedPayload)
             .setTooltip(MAX_COMPRESSED_PAYLOAD_TOOLTIP)
+            .setMax(Short.MAX_VALUE - Payload.FIXED_PAYLOAD_LENGTH)
             .setSaveConsumer(newValue -> {
               ConfigurationManager.INSTANCE.config.maxCompressedPayload = newValue;
               ConfigurationManager.INSTANCE.save();
+
+              // max payload size needs to be recomputed
+              MessagingEntrypointImpl.reregister();
             })
             .build()
         )

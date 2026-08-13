@@ -22,6 +22,6 @@ public final class Configuration {
   public volatile boolean forceCompress = false;
   public volatile boolean ignoreCspyLike = true;
   public volatile int chatMsgTrunc = 2048;
-  public volatile int maxCompressedPayload = this.chatMsgTrunc * 4;
+  public volatile int maxCompressedPayload = this.chatMsgTrunc / 2;
   public volatile boolean disableCompress = false;
 }

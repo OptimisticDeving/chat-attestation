@@ -1,5 +1,7 @@
 package dev.optimistic.chatattestation;
 
+import dev.optimistic.chatattestation.config.ConfigurationManager;
+import dev.optimistic.chatattestation.crypto.Payload;
 import dev.optimistic.chatattestation.crypto.SigningManager;
 import io.netty.buffer.ByteBuf;
 import land.chipmunk.code.kaboomstandardsorganization.messaginglib.fabric.FabricMessagingEntrypoint;
@@ -21,18 +23,36 @@ public final class MessagingEntrypointImpl implements FabricMessagingEntrypoint,
     .expiration(1, TimeUnit.MINUTES)
     .build();
   public static volatile FabricMessenger MESSENGER_INSTANCE;
+  private static volatile MessagingEntrypointImpl INSTANCE;
+
+  private void register() {
+    MESSENGER_INSTANCE.receivePayloads(
+      CHANNEL_NAME,
+      this,
+      (short) (Payload.FIXED_PAYLOAD_LENGTH + ConfigurationManager.INSTANCE.config.maxCompressedPayload)
+    );
+  }
+
+  public static void reregister() {
+    if (MESSENGER_INSTANCE == null || INSTANCE == null) return;
+
+    INSTANCE.register();
+  }
 
   @Override
   public void onRegistrationAvailable(@NotNull FabricMessenger messenger) {
     System.out.println("Registration available");
     MESSENGER_INSTANCE = messenger;
+    INSTANCE = this;
 
-    MESSENGER_INSTANCE.receivePayloads(CHANNEL_NAME, this);
+    this.register();
   }
 
   @Override
   public void onDeregister() {
     MESSENGER_INSTANCE = null;
+    INSTANCE = null;
+
     PAYLOAD_MAP.clear();
   }
 

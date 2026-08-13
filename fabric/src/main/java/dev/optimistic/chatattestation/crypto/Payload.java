@@ -13,7 +13,8 @@ import static dev.optimistic.chatattestation.crypto.SigningManager.PERIOD;
 import static dev.optimistic.chatattestation.util.Constants.MESSAGE_LIMIT;
 
 public record Payload(byte[] msg, byte[] signature, byte[] key, byte[] nonce, long exp, boolean compressedMsg) {
-  private static final int ORIGINAL_MSG_BUDGET = (MESSAGE_LIMIT - 4) - 64 - 16 - 8 - 2 - 1; // 64 for signature size, 16 for key hash, 8 for exp, 2 for nonce, 1 for payload header
+  public static final int FIXED_PAYLOAD_LENGTH = 64 + 16 + 8 + 2 + 1;
+  private static final int ORIGINAL_MSG_BUDGET = (MESSAGE_LIMIT - 4) - FIXED_PAYLOAD_LENGTH; // 64 for signature size, 16 for key hash, 8 for exp, 2 for nonce, 1 for payload header
 
   public static Payload read(byte[] msg, DataInputStream input) throws IOException {
     final int replacementMsgBytes = input.readUnsignedByte();
