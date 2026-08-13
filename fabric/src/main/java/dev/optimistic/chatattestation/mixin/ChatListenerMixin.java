@@ -35,10 +35,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -148,7 +145,6 @@ public abstract class ChatListenerMixin {
     });
   }
 
-
   @Unique
   private void handleCallback(
     @NotNull GuiMessage message,
@@ -170,23 +166,19 @@ public abstract class ChatListenerMixin {
 
       final var wrapped = new SigningManager.WrappedByteArray(createHash(originalContent.getBytes(StandardCharsets.UTF_8)));
       final ByteBuf payload;
-      payload = MessagingEntrypointImpl.PAYLOAD_MAP.remove(
-        new MessagingEntrypointImpl.StreamCacheKey(
-          wrapped,
-          sender
-        )
-      );
+      payload = sender == Util.NIL_UUID
+        ? MessagingEntrypointImpl.RECENT_PAYLOADS.remove(wrapped)
+        : MessagingEntrypointImpl.ATTRIBUTED_PAYLOADS.getOrDefault(sender, Collections.emptyMap()).remove(wrapped);
 
       if (payload == null) {
         pyl = null;
       } else {
-        payload.markReaderIndex();
-        pyl = new byte[payload.readableBytes()];
-        payload.readBytes(pyl);
-        if (sender != Util.NIL_UUID) {
-          MessagingEntrypointImpl.PAYLOAD_MAP.remove(new MessagingEntrypointImpl.StreamCacheKey(wrapped, Util.NIL_UUID));
-        } else {
-          payload.resetReaderIndex();
+        try {
+          pyl = new byte[payload.readableBytes()];
+          payload.readBytes(pyl);
+        } finally {
+          if (sender != Util.NIL_UUID) MessagingEntrypointImpl.RECENT_PAYLOADS.remove(wrapped);
+          payload.release();
         }
       }
     }
@@ -205,6 +197,7 @@ public abstract class ChatListenerMixin {
         new DataInputStream(new ByteArrayInputStream(pyl))
       );
     } catch (Exception e) {
+      e.printStackTrace();
       return;
     }
 
@@ -222,15 +215,15 @@ public abstract class ChatListenerMixin {
 
     try {
       switch (response) {
-        case SigningManager.Response.InvalidSignature invalidSignature -> {
+        case SigningManager.Response.InvalidSignature _ -> {
           newTag = INVALID_SIGNATURE;
           return;
         }
-        case SigningManager.Response.NoSuchKey noSuchKey -> {
+        case SigningManager.Response.NoSuchKey _ -> {
           newTag = NO_SUCH_KEY;
           return;
         }
-        case SigningManager.Response.ReusedSignature reusedSignature -> {
+        case SigningManager.Response.ReusedSignature _ -> {
           newTag = REUSED_SIGNATURE;
           return;
         }

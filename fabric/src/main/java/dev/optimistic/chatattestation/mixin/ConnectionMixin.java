@@ -5,14 +5,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import dev.optimistic.chatattestation.MessagingEntrypointImpl;
 import dev.optimistic.chatattestation.config.ConfigurationManager;
 import dev.optimistic.chatattestation.crypto.Payload;
-import dev.optimistic.chatattestation.crypto.SigningManager;
 import io.netty.channel.ChannelFutureListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerboundChatCommandPacket;
 import net.minecraft.network.protocol.game.ServerboundChatCommandSignedPacket;
-import net.minecraft.util.Util;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
@@ -22,7 +20,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static dev.optimistic.chatattestation.MessagingEntrypointImpl.CHANNEL_NAME;
-import static dev.optimistic.chatattestation.MessagingEntrypointImpl.PAYLOAD_MAP;
+import static dev.optimistic.chatattestation.MessagingEntrypointImpl.registerSelfPayload;
 import static dev.optimistic.chatattestation.crypto.SigningManager.createHash;
 import static dev.optimistic.chatattestation.util.Constants.SIGN_EXECUTOR;
 import static io.netty.buffer.Unpooled.buffer;
@@ -34,15 +32,15 @@ public abstract class ConnectionMixin {
   @WrapMethod(method = "doSendPacket")
   private void onDoSendPacket(
     Packet<?> packet,
-    @Nullable ChannelFutureListener channelFutureListener,
-    boolean bl,
+    @Nullable ChannelFutureListener listener,
+    boolean flush,
     Operation<Void> original
   ) {
     if (
       !ConfigurationManager.INSTANCE.config.toggleForSelf
         || (MessagingEntrypointImpl.MESSENGER_INSTANCE == null && ConfigurationManager.INSTANCE.config.disableFallback)
     ) {
-      original.call(packet, channelFutureListener, bl);
+      original.call(packet, listener, flush);
       return;
     }
 
@@ -52,12 +50,12 @@ public abstract class ConnectionMixin {
     } else if (packet instanceof final ServerboundChatCommandSignedPacket signedCommandPacket) {
       cmd = "/" + signedCommandPacket.command();
     } else {
-      original.call(packet, channelFutureListener, bl);
+      original.call(packet, listener, flush);
       return;
     }
 
     if (MessagingEntrypointImpl.MESSENGER_INSTANCE == null || ConfigurationManager.INSTANCE.config.forceFallback) {
-      original.call(packet, channelFutureListener, bl);
+      original.call(packet, listener, flush);
       return;
     }
 
@@ -78,12 +76,11 @@ public abstract class ConnectionMixin {
 
       final var conn = mc.getConnection();
       if (conn == null) return;
-      final var key = new SigningManager.WrappedByteArray(contentHash);
 
       buf.skipBytes(16);
-      PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, conn.getLocalGameProfile().id()), buf.copy());
-      PAYLOAD_MAP.put(new MessagingEntrypointImpl.StreamCacheKey(key, Util.NIL_UUID), buf);
-      mc.schedule(() -> original.call(packet, channelFutureListener, bl));
+      registerSelfPayload(conn, contentHash, buf);
+
+      mc.schedule(() -> original.call(packet, listener, flush));
     });
   }
 }
