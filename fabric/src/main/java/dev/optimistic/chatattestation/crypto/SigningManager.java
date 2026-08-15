@@ -207,7 +207,7 @@ public final class SigningManager {
             final var existingManifest = manifests.get(url);
             final var cache = existingManifest == null
               ? KeyManifestDisk.Cache.EMPTY
-              : existingManifest.cache();
+              : Objects.requireNonNullElse(existingManifest.cache(), KeyManifestDisk.Cache.EMPTY);
 
             return this.refetchManifest(url, cache);
           })

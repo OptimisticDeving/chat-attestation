@@ -1,12 +1,10 @@
 package dev.optimistic.chatattestation;
 
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.net.http.HttpResponse;
 
-@NullMarked
-public record KeyManifestDisk(Cache cache, KeyManifest manifest) {
+public record KeyManifestDisk(@Nullable Cache cache, KeyManifest manifest) {
   public record Cache(@Nullable String etag, @Nullable String lastModified) {
     public static final Cache EMPTY = new Cache(null, null);
 
