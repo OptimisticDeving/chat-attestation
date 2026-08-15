@@ -73,7 +73,6 @@ public final class MessagingEntrypointImpl implements FabricMessagingEntrypoint,
 
   @Override
   public void onRegistrationAvailable(@NotNull FabricMessenger messenger) {
-    System.out.println("Registration available");
     MESSENGER_INSTANCE = messenger;
     INSTANCE = this;
 
