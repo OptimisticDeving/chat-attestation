@@ -218,10 +218,7 @@ public final class SigningManager {
 
       try {
         final var newManifest = futureEntry.getValue().join();
-        if (newManifest.isEmpty()) {
-          LOGGER.info("{} has not been updated", manifest);
-          continue;
-        }
+        if (newManifest.isEmpty()) continue;
 
         this.manifests.put(manifest, newManifest.get());
       } catch (Exception e) {
