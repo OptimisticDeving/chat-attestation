@@ -125,8 +125,14 @@ public final class SigningManager {
       Base64.getEncoder().encodeToString(encodedPublicKey)
     );
 
-    @SuppressWarnings("resource") final var scheduler = Executors.newSingleThreadScheduledExecutor(DAEMON_THREAD_FACTORY);
-    scheduler.scheduleAtFixedRate(this::refetchKeys, 0, 1, TimeUnit.MINUTES);
+    @SuppressWarnings("resource") final var scheduler = Executors
+      .newSingleThreadScheduledExecutor(DAEMON_THREAD_FACTORY);
+    scheduler.scheduleAtFixedRate(
+      this::refetchKeys,
+      0,
+      1,
+      TimeUnit.MINUTES
+    );
   }
 
   public static void init() {
