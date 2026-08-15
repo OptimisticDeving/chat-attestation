@@ -2,6 +2,7 @@ package dev.optimistic.chatattestation.crypto;
 
 import com.google.gson.reflect.TypeToken;
 import dev.optimistic.chatattestation.KeyManifest;
+import dev.optimistic.chatattestation.KeyManifestDisk;
 import dev.optimistic.chatattestation.config.ConfigurationManager;
 import net.jodah.expiringmap.ExpiringMap;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
@@ -27,6 +28,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.StampedLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static dev.optimistic.chatattestation.util.Constants.*;
@@ -37,7 +39,7 @@ public final class SigningManager {
   public final byte[] selfHash;
   private final ExecutorService requestExecutor = Executors.newCachedThreadPool(DAEMON_THREAD_FACTORY);
   private final StampedLock lock = new StampedLock();
-  private final Map<String, KeyManifest> manifests;
+  private final Map<String, KeyManifestDisk> manifests;
   private final Set<String> nicks = new HashSet<>();
   private final Map<WrappedByteArray, LoadedKey> hashToKey = new HashMap<>();
   private final Map<Long, Set<WrappedByteArray>> usedSignatureMap = ExpiringMap.builder()
@@ -171,15 +173,25 @@ public final class SigningManager {
     }
   }
 
-  private CompletableFuture<KeyManifest> refetchManifest(String url) {
+  private CompletableFuture<Optional<KeyManifestDisk>> refetchManifest(String url, KeyManifestDisk.Cache cache) {
     return CompletableFuture.supplyAsync(() -> {
       try (final var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build()) {
-        final var request = client.send(
-          HttpRequest.newBuilder(URI.create(url)).GET().build(),
+        var builder = HttpRequest.newBuilder(URI.create(url)).GET();
+
+        if (cache.etag() != null) builder = builder.header("If-None-Match", cache.etag());
+        if (cache.lastModified() != null) builder = builder.header("If-Modified-Since", cache.lastModified());
+
+        final var response = client.send(
+          builder.build(),
           HttpResponse.BodyHandlers.ofString()
         );
 
-        return GSON.fromJson(request.body(), KeyManifest.class);
+        if (response.statusCode() == 304) return Optional.empty();
+
+        return Optional.of(new KeyManifestDisk(
+          KeyManifestDisk.Cache.from(response),
+          GSON.fromJson(response.body(), KeyManifest.class)
+        ));
       } catch (Exception e) {
         throw new CompletionException("Failed to fetch manifest", e);
       }
@@ -188,13 +200,30 @@ public final class SigningManager {
 
   public void refetchKeys() {
     final var futures = ConfigurationManager.INSTANCE.config.keyManifestUrls.stream()
-      .collect(Collectors.toMap(url -> url, this::refetchManifest));
+      .collect(
+        Collectors.toMap(
+          Function.identity(),
+          url -> {
+            final var existingManifest = manifests.get(url);
+            final var cache = existingManifest == null
+              ? KeyManifestDisk.Cache.EMPTY
+              : existingManifest.cache();
+
+            return this.refetchManifest(url, cache);
+          })
+      );
 
     for (final var futureEntry : futures.entrySet()) {
       final String manifest = futureEntry.getKey();
 
       try {
-        this.manifests.put(manifest, futureEntry.getValue().join());
+        final var newManifest = futureEntry.getValue().join();
+        if (newManifest.isEmpty()) {
+          LOGGER.info("{} has not been updated", manifest);
+          continue;
+        }
+
+        this.manifests.put(manifest, newManifest.get());
       } catch (Exception e) {
         LOGGER.warn("Fetching {} failed, cache will be used if present", manifest, e);
       }
@@ -220,7 +249,7 @@ public final class SigningManager {
       for (final var entry : this.manifests.entrySet()) {
         final var manifestUrl = entry.getKey();
 
-        for (final var keyToClaim : entry.getValue().keyToClaims().entrySet()) {
+        for (final var keyToClaim : entry.getValue().manifest().keyToClaims().entrySet()) {
           final var rawKey = Base64.getDecoder()
             .decode(keyToClaim.getKey());
           final var loadedKey = this.hashToKey.computeIfAbsent(
