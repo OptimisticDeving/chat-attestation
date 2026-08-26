@@ -7,6 +7,7 @@ jobs:
     steps:
       - uses: https://code.forgejo.org/actions/checkout@v6
       - uses: https://code.forgejo.org/actions/cache@v5
+        if: forgejo.event_name == 'push'
         with:
           path: |
             /opt/hostedtoolcache/
