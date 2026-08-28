@@ -5,8 +5,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: https://code.forgejo.org/actions/checkout@v6
-      - uses: https://code.forgejo.org/actions/cache@v5
+      - uses: https://code.forgejo.org/actions/checkout@v7
+      - uses: https://code.forgejo.org/actions/cache@v6
         if: forgejo.event_name == 'push'
         with:
           path: |
@@ -16,7 +16,7 @@ jobs:
             ~/.gradle
             ~/.m2
           key: ${{ runner.os }}-${{ runner.arch }}-${{ env.GITHUB_REPOSITORY }}-cache
-      - uses: https://github.com/actions/setup-java@v5
+      - uses: https://github.com/actions/setup-java@v6
         with:
           java-version: '25'
           distribution: 'temurin'
