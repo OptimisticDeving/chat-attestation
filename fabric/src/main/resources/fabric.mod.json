@@ -28,7 +28,7 @@
     "fabricloader": ">=${fabric_loader}",
     "minecraft": "~${minecraft}",
     "java": ">=${java}",
-    "messaging-lib": ">=3.2.0 <4.0"
+    "messaging-lib": ">=4.0.0 <5.0"
   },
   "suggests": {
     "modmenu": ">=${modmenu}",

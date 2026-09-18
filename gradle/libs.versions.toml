@@ -1,17 +1,17 @@
 [versions]
-minecraft = "26.2"
+minecraft = "26.3"
 fabric-loader = "0.19.5"
-cloth-config = "26.2.155"
-modmenu = "20.0.2"
+cloth-config = "26.3.158"
+modmenu = "21.0.0-beta.1"
 jtoml = "1.6.0"
 bouncycastle = "1.86"
 zstd-jni = "1.5.7-16"
-adventure-fabric = "7.1.0"
-messaging-lib = "3.2.0"
+adventure-fabric = "7.2.0"
+messaging-lib = "4.0.0"
 expiring-map = "0.5.11"
 
 java = "25"
-self = "2.2.4"
+self = "3.0.0"
 
 loom = "1.17-SNAPSHOT"
 minotaur = "2.+"
