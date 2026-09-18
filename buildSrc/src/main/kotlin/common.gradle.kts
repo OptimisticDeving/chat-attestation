@@ -14,6 +14,12 @@ java {
 }
 
 repositories {
+  mavenLocal {
+    content {
+      includeGroupAndSubgroups("land.chipmunk.code")
+    }
+  }
+
   maven("https://code.optmstc.dev/api/packages/kso/maven") {
     content {
       includeGroupAndSubgroups("land.chipmunk.code")
