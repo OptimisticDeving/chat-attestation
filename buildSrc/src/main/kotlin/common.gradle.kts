@@ -14,15 +14,13 @@ java {
 }
 
 repositories {
-  maven("https://code.optmstc.dev/api/packages/kso/maven") {
-    content {
-      includeGroupAndSubgroups("land.chipmunk.code")
+  for (forge in arrayOf("code.optmstc.dev", "code.hcesaropz.dev", "code.chipmunk.land", "codeberg.org")) {
+    maven("https://$forge/api/packages/${if (forge == "codeberg.org" || forge == "code.chipmunk.land") "kaboomstandardsorganization" else "kso"}/maven") {
+      mavenContent {
+        includeGroupAndSubgroups("land.chipmunk.code.kaboomstandardsorganization")
+      }
     }
   }
-  maven("https://code.chipmunk.land/api/packages/kaboomstandardsorganization/maven") {
-    content {
-      includeGroupAndSubgroups("land.chipmunk.code")
-    }
-  }
+
   mavenCentral()
 }
