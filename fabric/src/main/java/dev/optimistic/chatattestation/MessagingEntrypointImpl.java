@@ -108,9 +108,4 @@ public final class MessagingEntrypointImpl implements FabricMessagingEntrypoint,
     RECENT_PAYLOADS.put(wrapper, payload.copy());
     getAttributionMap(sender).put(wrapper, payload.copy());
   }
-
-  // TODO: This won't work very well with vanished players.
-  public record StreamCacheKey(SigningManager.WrappedByteArray contentHash, UUID sender) {
-
-  }
 }
