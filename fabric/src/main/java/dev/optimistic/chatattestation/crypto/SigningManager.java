@@ -4,6 +4,7 @@ import com.google.gson.reflect.TypeToken;
 import dev.optimistic.chatattestation.KeyManifest;
 import dev.optimistic.chatattestation.KeyManifestDisk;
 import dev.optimistic.chatattestation.config.ConfigurationManager;
+import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
@@ -42,9 +43,13 @@ public final class SigningManager {
   private final Map<String, KeyManifestDisk> manifests;
   private final Set<String> nicks = new HashSet<>();
   private final Map<WrappedByteArray, LoadedKey> hashToKey = new HashMap<>();
-  private final Map<Long, Set<WrappedByteArray>> usedSignatureMap = ExpiringMap.builder()
-    .expiration(PERIOD, TimeUnit.MILLISECONDS)
-    .build();
+  private final Set<WrappedByteArray> usedSignatures = Collections.newSetFromMap(
+    ExpiringMap.builder()
+      .expirationPolicy(ExpirationPolicy.CREATED)
+      .expiration(PERIOD, TimeUnit.MILLISECONDS)
+      .maxSize(16384)
+      .build()
+  );
   private final Path cachePath;
   private final Ed25519PrivateKeyParameters selfKey;
 
@@ -150,10 +155,6 @@ public final class SigningManager {
     }
 
     return Arrays.copyOfRange(messageDigest.digest(input), 0, 16);
-  }
-
-  private static long getCurrentPeriod() {
-    return 0;
   }
 
   private void savePrivateKey(Path keyPath) {
@@ -278,9 +279,8 @@ public final class SigningManager {
     final long readLock = this.lock.readLock();
 
     try {
-      final var usedSignatures = this.usedSignatureMap.computeIfAbsent(getCurrentPeriod(), k -> new HashSet<>());
       final var wrappedSig = new WrappedByteArray(sig);
-      if (usedSignatures.contains(wrappedSig)) return Response.ReusedSignature.INSTANCE;
+      if (!this.usedSignatures.add(wrappedSig)) return Response.ReusedSignature.INSTANCE;
       final var wrappedKey = new WrappedByteArray(key);
       final var loadedKey = this.hashToKey.get(wrappedKey);
       if (loadedKey == null) return Response.NoSuchKey.INSTANCE;
@@ -288,7 +288,6 @@ public final class SigningManager {
       if (!loadedKey.bc.verify(Ed25519.Algorithm.Ed25519, null, msg, 0, msg.length, sig, 0))
         return Response.InvalidSignature.INSTANCE;
 
-      usedSignatures.add(wrappedSig);
       return new Response.SignatureValid(loadedKey);
     } finally {
       this.lock.unlockRead(readLock);
